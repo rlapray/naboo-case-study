@@ -4,7 +4,7 @@ import type { ActivityDto } from "@/types/activity";
 import { useGlobalStyles } from "@/utils";
 
 interface ActivityProps {
-  activity: ActivityDto;
+  readonly activity: ActivityDto;
 }
 
 export function Activity({ activity }: ActivityProps) {

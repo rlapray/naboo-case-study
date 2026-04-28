@@ -23,6 +23,7 @@ export function withoutAuth<P extends object>(WrappedComponent: ComponentType<P>
         </Box>
       );
 
-    return !isLoading && !user && <WrappedComponent {...props} />;
+    if (!user) return <WrappedComponent {...props} />;
+    return null;
   };
 }

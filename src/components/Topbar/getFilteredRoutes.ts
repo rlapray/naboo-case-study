@@ -18,7 +18,7 @@ export const checkRouteAccess = (
 };
 
 export const getFilteredRoutes = (
-  routes: Route[],
+  routes: readonly Route[],
   user: UserDto | null
 ) => {
   return routes

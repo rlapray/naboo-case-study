@@ -10,7 +10,7 @@ import type { ActivityDto } from "@/types/activity";
 import { useGlobalStyles } from "@/utils";
 
 interface HomeProps {
-  activities: ActivityDto[];
+  readonly activities: readonly ActivityDto[];
 }
 
 export const getServerSideProps: GetServerSideProps<HomeProps> = async () => {

@@ -3,8 +3,8 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
 
 interface PageTitleProps {
-  title: string;
-  prevPath?: string | (() => void);
+  readonly title: string;
+  readonly prevPath?: string | (() => void);
 }
 
 export function PageTitle({ title, prevPath }: PageTitleProps) {

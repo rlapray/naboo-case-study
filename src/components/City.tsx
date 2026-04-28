@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useGlobalStyles } from "@/utils";
 
 interface CityProps {
-  city: string;
+  readonly city: string;
 }
 
 export function City({ city }: CityProps) {

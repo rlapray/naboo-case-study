@@ -6,7 +6,7 @@ import { activityService } from "@/server/activities/activity.service";
 import { connectDb } from "@/server/db";
 
 interface ExplorerProps {
-  cities: string[];
+  readonly cities: readonly string[];
 }
 
 export const getServerSideProps: GetServerSideProps<

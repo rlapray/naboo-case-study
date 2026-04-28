@@ -60,7 +60,7 @@ export default function ActivityForm() {
       setIsLoading(true);
       await api.createActivity({ ...values, price: Number(values.price) });
       router.back();
-    } catch (err) {
+    } catch {
       snackbar.error("Une erreur est survenue");
     } finally {
       setIsLoading(false);

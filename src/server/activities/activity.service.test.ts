@@ -91,7 +91,7 @@ describe("activityService.findByCity", () => {
 
     it("includes activities at the price boundary ($lte, not $lt)", async () => {
       const result = await activityService.findByCity("Lyon", undefined, 50);
-      expect(result.map((a) => a.name).sort()).toEqual(["A", "B"]);
+      expect(result.map((a) => a.name).sort((a, b) => a.localeCompare(b))).toEqual(["A", "B"]);
     });
 
     it("excludes activities above the cap", async () => {

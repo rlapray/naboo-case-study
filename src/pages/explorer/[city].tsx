@@ -12,8 +12,8 @@ import { toActivityDtos } from "@/server/serialize";
 import type { ActivityDto } from "@/types/activity";
 
 interface CityDetailsProps {
-  activities: ActivityDto[];
-  city: string;
+  readonly activities: readonly ActivityDto[];
+  readonly city: string;
 }
 
 export const getServerSideProps: GetServerSideProps<CityDetailsProps> = async ({
@@ -66,7 +66,8 @@ export default function ActivityDetails({
       searchParams.set("price", debouncedSearchPrice.toString());
 
     const stringParams = searchParams.toString();
-    void router.push(`/explorer/${city}${stringParams ? `?${stringParams}` : ""}`);
+    const suffix = stringParams ? `?${stringParams}` : "";
+    void router.push(`/explorer/${city}${suffix}`);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [city, debouncedSearchActivity, debouncedSearchPrice]);

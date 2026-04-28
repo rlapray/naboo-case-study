@@ -8,7 +8,7 @@ import { useTopbarStyles } from "./Topbar.styles";
 import type { Route } from "./types";
 
 interface TopbarProps {
-  routes: Route[];
+  readonly routes: readonly Route[];
 }
 
 export function Topbar({ routes }: TopbarProps) {

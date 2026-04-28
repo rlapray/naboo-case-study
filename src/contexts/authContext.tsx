@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const result = await api.login(input);
       setUser(result.user);
       await router.push("/profil");
-    } catch (err) {
+    } catch {
       snackbar.error("Une erreur est survenue");
     } finally {
       setIsLoading(false);
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setIsLoading(true);
       await api.register(input);
       await router.push("/signin");
-    } catch (err) {
+    } catch {
       snackbar.error("Une erreur est survenue");
     } finally {
       setIsLoading(false);
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await api.logout();
       setUser(null);
       await router.push("/");
-    } catch (err) {
+    } catch {
       snackbar.error("Une erreur est survenue");
     } finally {
       setIsLoading(false);

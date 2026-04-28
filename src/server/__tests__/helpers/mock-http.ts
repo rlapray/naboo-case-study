@@ -7,10 +7,12 @@ interface CallOptions {
   cookies?: Record<string, string>;
 }
 
+type HeaderValue = string | string[] | undefined;
+
 interface CallResult {
   status: number;
   body: unknown;
-  headers: Record<string, string | string[] | undefined>;
+  headers: Record<string, HeaderValue>;
 }
 
 export async function callHandler(

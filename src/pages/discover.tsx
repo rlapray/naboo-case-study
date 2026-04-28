@@ -10,7 +10,7 @@ import { toActivityDtos } from "@/server/serialize";
 import type { ActivityDto } from "@/types/activity";
 
 interface DiscoverProps {
-  activities: ActivityDto[];
+  readonly activities: readonly ActivityDto[];
 }
 
 export const getServerSideProps: GetServerSideProps<

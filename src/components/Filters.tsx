@@ -3,10 +3,10 @@ import { IconCurrencyEuro, IconWalk } from "@tabler/icons-react";
 import type { Dispatch, SetStateAction } from "react";
 
 interface FiltersProps {
-  activity: string | undefined;
-  price: number | undefined;
-  setSearchActivity: Dispatch<SetStateAction<string | undefined>>;
-  setSearchPrice: Dispatch<SetStateAction<number | undefined>>;
+  readonly activity: string | undefined;
+  readonly price: number | undefined;
+  readonly setSearchActivity: Dispatch<SetStateAction<string | undefined>>;
+  readonly setSearchPrice: Dispatch<SetStateAction<number | undefined>>;
 }
 
 export function Filters({
