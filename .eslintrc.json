@@ -11,7 +11,8 @@
     "plugin:@typescript-eslint/stylistic-type-checked",
     "plugin:jsx-a11y/strict",
     "plugin:import/recommended",
-    "plugin:import/typescript"
+    "plugin:import/typescript",
+    "plugin:sonarjs/recommended-legacy"
   ],
   "settings": {
     "import/resolver": {
@@ -23,7 +24,8 @@
     ".next/",
     "out/",
     "playwright-report/",
-    "test-results/"
+    "test-results/",
+    ".eslintrc.json"
   ],
   "rules": {
     "react-hooks/exhaustive-deps": "error",
@@ -53,11 +55,20 @@
         "alphabetize": { "order": "asc", "caseInsensitive": true }
       }
     ],
-    "import/no-default-export": "off"
+    "import/no-default-export": "off",
+    "sonarjs/cognitive-complexity": ["warn", 15],
+    "sonarjs/prefer-read-only-props": "warn",
+    "sonarjs/no-ignored-exceptions": "warn",
+    "sonarjs/function-return-type": "warn",
+    "sonarjs/no-nested-template-literals": "warn",
+    "sonarjs/use-type-alias": "warn",
+    "sonarjs/no-alphabetical-sort": "warn",
+    "sonarjs/class-name": "off",
+    "sonarjs/public-static-readonly": "off"
   },
   "overrides": [
     {
-      "files": ["e2e/**/*.ts", "playwright.config.ts", "vitest.config.ts", "next.config.js", ".eslintrc.json"],
+      "files": ["e2e/**/*.ts", "playwright.config.ts", "vitest.config.ts", "next.config.js"],
       "parserOptions": { "project": null }
     }
   ]

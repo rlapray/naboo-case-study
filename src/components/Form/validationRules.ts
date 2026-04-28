@@ -1,6 +1,9 @@
 type ValidationRule<T> = (value: T) => string | null;
 
-const isValidEmail = (value: string) => /^\S+@\S+$/.test(value);
+const isValidEmail = (value: string) => {
+  const at = value.indexOf("@");
+  return at > 0 && at < value.length - 1 && value.includes(".", at + 2);
+};
 const isValidString = (value: string) => value.length > 0;
 const isNumberGreaterThanZero = (value: number) => value > 0;
 

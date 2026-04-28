@@ -1,11 +1,9 @@
 # Liste des paquets dont on accepte qu'ils restent en retard (un nom par ligne).
-# Dette technique reconnue à la migration vers pnpm (2026-04-28) — à résorber par PR dédiée.
+# Dette technique reconnue (2026-04-28) — bcrypt et cookie retirés car mis à jour.
 @mantine/core
 @mantine/form
 @mantine/hooks
 @tabler/icons-react
-bcrypt
-cookie
 mongoose
 next
 react
