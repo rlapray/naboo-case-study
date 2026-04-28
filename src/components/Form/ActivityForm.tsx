@@ -2,9 +2,8 @@ import { Box, Button, Group, Select, TextInput, Textarea } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useDebounced, useSnackbar } from "@/hooks";
+import { useCreateActivity, useDebounced, useSnackbar } from "@/hooks";
 import { searchCity } from "@/services";
-import { api } from "@/services/api";
 import type { CreateActivityInput } from "@/types/activity";
 import {
   cityValidation,
@@ -21,10 +20,13 @@ interface SelectData {
 export default function ActivityForm() {
   const snackbar = useSnackbar();
   const [searchValue, setSearchValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const debouncedSearch = useDebounced(searchValue, 300);
   const [displayedCities, setDisplayedCities] = useState<SelectData[]>([]);
   const router = useRouter();
+  const { isLoading, submit } = useCreateActivity({
+    onSuccess: () => router.back(),
+    onError: () => snackbar.error("Une erreur est survenue"),
+  });
 
   const form = useForm<CreateActivityInput>({
     initialValues: {
@@ -55,21 +57,9 @@ export default function ActivityForm() {
     }
   }, [debouncedSearch, searchValue, snackbar]);
 
-  const handleSubmit = async (values: CreateActivityInput) => {
-    try {
-      setIsLoading(true);
-      await api.createActivity({ ...values, price: Number(values.price) });
-      router.back();
-    } catch {
-      snackbar.error("Une erreur est survenue");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <Box maw={450} mx="auto">
-      <form onSubmit={form.onSubmit((values) => void handleSubmit(values))}>
+      <form onSubmit={form.onSubmit((values) => void submit(values))}>
         <TextInput
           withAsterisk
           label="Nom de l'activité"
