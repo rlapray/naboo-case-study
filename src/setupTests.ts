@@ -1,4 +1,4 @@
-import "@testing-library/jest-dom/extend-expect";
+import "@testing-library/jest-dom/vitest";
 
 // Mantine v7+ utilise window.matchMedia pour la gestion du color scheme.
 // jsdom ne l'implémente pas — on le mocke uniquement dans les environnements browser (jsdom).

@@ -5,7 +5,7 @@ import { setJwtCookie } from "@/server/auth/cookies";
 import { toUserDto } from "@/server/serialize";
 
 const bodySchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(1),
 });
 

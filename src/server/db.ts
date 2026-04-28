@@ -14,18 +14,14 @@ const cached: MongooseGlobal = globalWithMongoose.__mongoose ?? {
   promise: null,
 };
 
-if (!globalWithMongoose.__mongoose) {
-  globalWithMongoose.__mongoose = cached;
-}
+globalWithMongoose.__mongoose ??= cached;
 
 export async function connectDb(uri?: string): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn;
   const target = uri ?? process.env.MONGO_URI;
   if (!target) throw new Error("MONGO_URI is not defined");
 
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(target, { bufferCommands: false });
-  }
+  cached.promise ??= mongoose.connect(target, { bufferCommands: false });
   cached.conn = await cached.promise;
   return cached.conn;
 }

@@ -9,9 +9,7 @@ export async function seed(): Promise<void> {
 
   let user = await userService.findByEmail(userSeed.email);
   const userExisted = Boolean(user);
-  if (!user) {
-    user = await userService.createUser(userSeed);
-  }
+  user ??= await userService.createUser(userSeed);
 
   const admin = await userService.findByEmail(adminSeed.email);
   if (!admin) {
