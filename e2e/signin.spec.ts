@@ -7,8 +7,8 @@ test.describe("Page Signin", () => {
   });
 
   test("affiche le formulaire de connexion", async ({ page }) => {
-    await expect(page).toHaveTitle(/Connection/);
-    await expect(page.getByRole("heading", { name: "Connection" })).toBeVisible();
+    await expect(page).toHaveTitle(/Connexion/);
+    await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Mot de passe")).toBeVisible();
     await expect(page.getByRole("button", { name: "Valider" })).toBeVisible();
@@ -34,6 +34,6 @@ test.describe("Page Signin", () => {
     await page.getByRole("button", { name: "Valider" }).click();
 
     await expect(page).toHaveURL(/\/signin$/);
-    await expect(page.getByRole("heading", { name: "Connection" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
   });
 });

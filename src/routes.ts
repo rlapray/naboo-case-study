@@ -10,7 +10,7 @@ export const routes: Route[] = [
     icon: IconUserCircle,
     route: [
       {
-        label: "Connection",
+        label: "Connexion",
         link: "/signin",
         requiredAuth: false,
       },

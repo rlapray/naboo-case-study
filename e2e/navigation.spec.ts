@@ -26,7 +26,7 @@ test.describe("Topbar — items du menu cliquables sur toute leur surface", () =
     await page.goto("/");
     await page.locator(userMenuTrigger).hover();
 
-    const item = page.getByRole("menuitem", { name: "Connection" });
+    const item = page.getByRole("menuitem", { name: "Connexion" });
     await expect(item).toHaveAttribute("href", "/signin");
   });
 });
