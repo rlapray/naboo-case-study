@@ -1,4 +1,7 @@
-import {
+import { useLazyQuery, useMutation } from "@apollo/client";
+import { useRouter } from "next/router";
+import { createContext, useEffect, useState } from "react";
+import type {
   GetUserQuery,
   GetUserQueryVariables,
   LogoutMutation,
@@ -15,9 +18,6 @@ import Signin from "@/graphql/mutations/auth/signin";
 import Signup from "@/graphql/mutations/auth/signup";
 import GetUser from "@/graphql/queries/auth/getUser";
 import { useSnackbar } from "@/hooks";
-import { useLazyQuery, useMutation } from "@apollo/client";
-import { useRouter } from "next/router";
-import { createContext, useEffect, useState } from "react";
 
 interface AuthContextType {
   user: GetUserQuery["getMe"] | null;
@@ -54,22 +54,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const token = localStorage.getItem("token");
 
     if (!user && token) {
-      getUser()
-        .then((res) => setUser(res.data?.getMe || null))
+      void getUser()
+        .then((res) => setUser(res.data?.getMe ?? null))
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
+    // getUser issu de useLazyQuery n'est pas stable entre rendus ;
+    // l'inclure dans les deps provoque un re-déclenchement infini de l'effet.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleSignin = async (input: SignInInput) => {
     try {
       setIsLoading(true);
       const response = await signin({ variables: { signInInput: input } });
-      const token = response.data?.login?.access_token || "";
+      const token = response.data?.login?.access_token ?? "";
       localStorage.setItem("token", token);
-      await getUser().then((res) => setUser(res.data?.getMe || null));
-      router.push("/profil");
+      const res = await getUser();
+      setUser(res.data?.getMe ?? null);
+      await router.push("/profil");
     } catch (err) {
       snackbar.error("Une erreur est survenue");
     } finally {
@@ -81,7 +85,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setIsLoading(true);
       await signup({ variables: { signUpInput: input } });
-      router.push("/signin");
+      await router.push("/signin");
     } catch (err) {
       snackbar.error("Une erreur est survenue");
     } finally {
@@ -95,7 +99,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await logout();
       localStorage.removeItem("token");
       setUser(null);
-      router.push("/");
+      await router.push("/");
     } catch (err) {
       snackbar.error("Une erreur est survenue");
     } finally {

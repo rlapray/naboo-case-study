@@ -1,7 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
 import { BaseAppModule } from './app.module';
-import { INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { TestModule, closeInMongodConnection } from './test/test.module';
 
@@ -21,7 +22,7 @@ describe('App e2e', () => {
   });
 
   afterAll(async () => {
-    closeInMongodConnection();
+    await closeInMongodConnection();
   });
   it('app should be defined', () => {
     expect(app).toBeDefined();

@@ -1,13 +1,13 @@
+import { Flex } from "@mantine/core";
+import type { GetServerSideProps } from "next";
+import Head from "next/head";
 import { City, EmptyData, PageTitle } from "@/components";
 import { graphqlClient } from "@/graphql/apollo";
-import {
+import type {
   GetCitiesQuery,
   GetCitiesQueryVariables,
 } from "@/graphql/generated/types";
 import GetCities from "@/graphql/queries/city/getCities";
-import { Flex } from "@mantine/core";
-import { GetServerSideProps } from "next";
-import Head from "next/head";
 
 interface ExplorerProps {
   cities: GetCitiesQuery["getCities"];

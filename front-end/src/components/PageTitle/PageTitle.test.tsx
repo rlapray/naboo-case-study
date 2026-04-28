@@ -38,7 +38,7 @@ describe("le composant PageTitle", () => {
     const buttonLink = getButton();
     expect(buttonLink).toBeInTheDocument();
 
-    userEvent.click(buttonLink!);
+    await userEvent.click(buttonLink!);
 
     await waitFor(() => expect(goBack).toHaveBeenCalled());
   });

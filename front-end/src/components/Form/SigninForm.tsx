@@ -1,9 +1,9 @@
-import { useAuth } from "@/hooks";
 import { Box, Button, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import Link from "next/link";
+import type { SignInInput } from "@/graphql/generated/types";
+import { useAuth } from "@/hooks";
 import { emailValidation, passwordValidation } from "./validationRules";
-import { SignInInput } from "@/graphql/generated/types";
 
 export default function SigninForm() {
   const { handleSignin, isLoading } = useAuth();
@@ -20,7 +20,7 @@ export default function SigninForm() {
 
   return (
     <Box maw={450} mx="auto">
-      <form onSubmit={form.onSubmit((values) => handleSignin(values))}>
+      <form onSubmit={form.onSubmit((values) => void handleSignin(values))}>
         <TextInput
           withAsterisk
           label="Email"

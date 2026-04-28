@@ -1,27 +1,27 @@
-import { useDebounced, useSnackbar } from "@/hooks";
-import { searchCity } from "@/services";
+import { useMutation } from "@apollo/client";
 import { Box, Button, Group, Select, TextInput, Textarea } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import type {
+  CreateActivityInput,
+  CreateActivityMutation,
+  CreateActivityMutationVariables,
+} from "@/graphql/generated/types";
+import CreateActivity from "@/graphql/mutations/activity/createActivity";
+import { useDebounced, useSnackbar } from "@/hooks";
+import { searchCity } from "@/services";
 import {
   cityValidation,
   descriptionValidation,
   nameValidation,
   priceValidation,
 } from "./validationRules";
-import { useMutation } from "@apollo/client";
-import CreateActivity from "@/graphql/mutations/activity/createActivity";
-import {
-  CreateActivityInput,
-  CreateActivityMutation,
-  CreateActivityMutationVariables,
-} from "@/graphql/generated/types";
 
-type SelectData = {
+interface SelectData {
   value: string;
   label: string;
-};
+}
 
 export default function ActivityForm() {
   const snackbar = useSnackbar();
@@ -57,8 +57,10 @@ export default function ActivityForm() {
         .then((data) => {
           setDisplayedCities(data.map((d) => ({ value: d.nom, label: d.nom })));
         })
-        .catch((err) => {
-          snackbar.error(err?.message || "Une erreur est survenue");
+        .catch((err: unknown) => {
+          const message =
+            err instanceof Error ? err.message : "Une erreur est survenue";
+          snackbar.error(message);
         });
     }
   }, [debouncedSearch, searchValue, snackbar]);
@@ -81,7 +83,7 @@ export default function ActivityForm() {
 
   return (
     <Box maw={450} mx="auto">
-      <form onSubmit={form.onSubmit(handleSubmit)}>
+      <form onSubmit={form.onSubmit((values) => void handleSubmit(values))}>
         <TextInput
           withAsterisk
           label="Nom de l'activité"

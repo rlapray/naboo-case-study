@@ -1,6 +1,9 @@
 import { Flex } from "@mantine/core";
+import type { StaticImageData } from "next/image";
 import Image from "next/image";
-import emptyDataSvg from "../../public/images/undraw_no_data_re_kwbl.svg";
+import emptyDataRaw from "../../public/images/undraw_no_data_re_kwbl.svg";
+
+const emptyDataSvg = emptyDataRaw as StaticImageData;
 
 export function EmptyData() {
   return (

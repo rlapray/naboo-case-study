@@ -12,9 +12,11 @@ interface Snackbar {
   type: "error" | "success";
 }
 
+const noop = () => undefined;
+
 export const SnackbarContext = createContext<SnackbarContextType>({
-  error: () => {},
-  success: () => {},
+  error: noop,
+  success: noop,
 });
 
 export const SnackbarProvider = ({

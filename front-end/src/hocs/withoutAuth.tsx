@@ -1,17 +1,18 @@
-import { useAuth } from "@/hooks";
 import { Box, Loader } from "@mantine/core";
 import { useRouter } from "next/router";
-import { ComponentType, useEffect } from "react";
+import type { ComponentType} from "react";
+import { useEffect } from "react";
+import { useAuth } from "@/hooks";
 
-export function withoutAuth(WrappedComponent: ComponentType<any>) {
+export function withoutAuth<P extends object>(WrappedComponent: ComponentType<P>) {
   // eslint-disable-next-line react/display-name
-  return (props: any) => {
+  return (props: P) => {
     const { user, isLoading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
       if (!isLoading && user) {
-        router.push("/");
+        void router.push("/");
       }
     }, [isLoading, router, user]);
 

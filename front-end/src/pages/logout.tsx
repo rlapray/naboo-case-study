@@ -2,6 +2,6 @@ import { useAuth } from "@/hooks";
 
 export default function Logout() {
   const { handleLogout } = useAuth();
-  handleLogout();
+  void handleLogout();
   return null;
 }

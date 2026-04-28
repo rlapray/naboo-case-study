@@ -33,15 +33,14 @@ import { PayloadDto } from './auth/types/jwtPayload.dto';
           playground: true,
           buildSchemaOptions: { numberScalarMode: 'integer' },
           context: async ({ req, res }: { req: Request; res: Response }) => {
-            const token =
-              req.headers.jwt ?? (req.cookies && req.cookies['jwt']);
+            const token = req.headers.jwt ?? req.cookies?.jwt;
 
             let jwtPayload: PayloadDto | null = null;
             if (token) {
               try {
-                jwtPayload = (await jwtService.verifyAsync(token, {
+                jwtPayload = await jwtService.verifyAsync<PayloadDto>(token, {
                   secret,
-                })) as PayloadDto;
+                });
               } catch (error) {
                 throw new UnauthorizedException(error);
               }

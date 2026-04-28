@@ -1,5 +1,5 @@
+import { gql } from "graphql-tag";
 import ActivityFragment from "@/graphql/fragments/activity";
-import gql from "graphql-tag";
 
 const GetActivitiesByCity = gql`
   query GetActivitiesByCity($activity: String, $city: String!, $price: Int) {
