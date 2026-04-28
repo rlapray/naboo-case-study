@@ -1,7 +1,8 @@
-import { Button, Grid, Group } from "@mantine/core";
+import { Button, Center, Grid, Group } from "@mantine/core";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import { useState } from "react";
 import { Activity, EmptyData, PageTitle } from "@/components";
 import { withAuth } from "@/hocs";
 import { useAuth } from "@/hooks";
@@ -9,24 +10,41 @@ import { activityService } from "@/server/activities/activity.service";
 import { getCurrentUser } from "@/server/auth/session";
 import { connectDb } from "@/server/db";
 import { toActivityDtos } from "@/server/serialize";
-import type { ActivityDto } from "@/types/activity";
+import type { ActivityDto, PaginatedActivitiesResponse } from "@/types/activity";
 
 interface MyActivitiesProps {
   activities: ActivityDto[];
+  nextCursor: string | null;
 }
 
-export const getServerSideProps: GetServerSideProps<
-  MyActivitiesProps
-> = async ({ req }) => {
+export const getServerSideProps: GetServerSideProps<MyActivitiesProps> = async ({ req }) => {
   await connectDb();
   const user = await getCurrentUser(req);
   if (!user) return { redirect: { destination: "/signin", permanent: false } };
-  const activities = await activityService.findByUser(user._id.toString());
-  return { props: { activities: toActivityDtos(activities) } };
+  const { items, nextCursor } = await activityService.findByUser(user._id.toString());
+  return {
+    props: { activities: toActivityDtos(items), nextCursor: nextCursor ?? null },
+  };
 };
 
-const MyActivities = ({ activities }: MyActivitiesProps) => {
+const MyActivities = ({ activities: initial, nextCursor: initialCursor }: MyActivitiesProps) => {
   const { user } = useAuth();
+  const [activities, setActivities] = useState<ActivityDto[]>(initial);
+  const [cursor, setCursor] = useState<string | null>(initialCursor);
+  const [loading, setLoading] = useState(false);
+
+  const loadMore = async () => {
+    if (!cursor) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/activities/mine?cursor=${cursor}`);
+      const data: PaginatedActivitiesResponse = await res.json();
+      setActivities((prev) => [...prev, ...data.items]);
+      setCursor(data.nextCursor ?? null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -50,6 +68,13 @@ const MyActivities = ({ activities }: MyActivitiesProps) => {
           <EmptyData />
         )}
       </Grid>
+      {cursor && (
+        <Center mt="xl">
+          <Button onClick={() => { void loadMore(); }} loading={loading} variant="outline">
+            Charger plus
+          </Button>
+        </Center>
+      )}
     </>
   );
 };

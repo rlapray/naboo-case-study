@@ -1,4 +1,4 @@
-import { Divider, Flex, Grid } from "@mantine/core";
+import { Button, Center, Divider, Flex, Grid } from "@mantine/core";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useSearchParams } from "next/navigation";
@@ -9,10 +9,11 @@ import { useDebounced } from "@/hooks";
 import { activityService } from "@/server/activities/activity.service";
 import { connectDb } from "@/server/db";
 import { toActivityDtos } from "@/server/serialize";
-import type { ActivityDto } from "@/types/activity";
+import type { ActivityDto, PaginatedActivitiesResponse } from "@/types/activity";
 
 interface CityDetailsProps {
-  readonly activities: readonly ActivityDto[];
+  readonly activities: ActivityDto[];
+  readonly nextCursor: string | null;
   readonly city: string;
 }
 
@@ -29,18 +30,23 @@ export const getServerSideProps: GetServerSideProps<CityDetailsProps> = async ({
     return { notFound: true };
 
   await connectDb();
-  const activities = await activityService.findByCity(
+  const { items, nextCursor } = await activityService.findByCity(
     params.city,
     typeof query.activity === "string" ? query.activity : undefined,
     typeof query.price === "string" ? Number(query.price) : undefined,
   );
   return {
-    props: { activities: toActivityDtos(activities), city: params.city },
+    props: {
+      activities: toActivityDtos(items),
+      nextCursor: nextCursor ?? null,
+      city: params.city,
+    },
   };
 };
 
 export default function ActivityDetails({
-  activities,
+  activities: initialActivities,
+  nextCursor: initialCursor,
   city,
 }: CityDetailsProps) {
   const router = useRouter();
@@ -55,6 +61,19 @@ export default function ActivityDetails({
     searchParams?.get("price") ? Number(searchParams.get("price")) : undefined
   );
   const debouncedSearchPrice = useDebounced(searchPrice, 300);
+
+  const [prevInitial, setPrevInitial] = useState(initialActivities);
+  const [activities, setActivities] = useState<ActivityDto[]>(initialActivities);
+  const [cursor, setCursor] = useState<string | null>(initialCursor);
+  const [loading, setLoading] = useState(false);
+
+  // Sync state when SSR provides a fresh first page after a filter navigation.
+  // Render-phase update avoids cascading effects (React re-renders synchronously).
+  if (prevInitial !== initialActivities) {
+    setPrevInitial(initialActivities);
+    setActivities(initialActivities);
+    setCursor(initialCursor);
+  }
 
   useEffect(() => {
     const searchParams = new URLSearchParams();
@@ -71,6 +90,22 @@ export default function ActivityDetails({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [city, debouncedSearchActivity, debouncedSearchPrice]);
+
+  const loadMore = async () => {
+    if (!cursor) return;
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ city, cursor });
+      if (searchActivity) params.set("activity", searchActivity);
+      if (searchPrice !== undefined) params.set("price", searchPrice.toString());
+      const res = await fetch(`/api/activities/by-city?${params.toString()}`);
+      const data: PaginatedActivitiesResponse = await res.json();
+      setActivities((prev) => [...prev, ...data.items]);
+      setCursor(data.nextCursor ?? null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -103,6 +138,13 @@ export default function ActivityDetails({
               ))
             ) : (
               <EmptyData />
+            )}
+            {cursor && (
+              <Center mt="md">
+                <Button onClick={() => { void loadMore(); }} loading={loading} variant="outline">
+                  Charger plus
+                </Button>
+              </Center>
             )}
           </Flex>
         </Grid.Col>

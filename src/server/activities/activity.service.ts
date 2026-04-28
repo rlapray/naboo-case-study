@@ -12,6 +12,19 @@ export interface CreateActivityInput {
   price: number;
 }
 
+export interface PaginationOptions {
+  limit?: number;
+  cursor?: string;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  nextCursor?: string;
+}
+
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+
 const DIACRITIC_GROUPS: Record<string, string> = {
   a: "[aàáâãäåæ]",
   c: "[cç]",
@@ -37,9 +50,32 @@ function buildDiacriticInsensitiveRegex(input: string): string {
   return out;
 }
 
+function buildPage(
+  docs: ActivityDocument[],
+  limit: number,
+): PaginatedResult<ActivityDocument> {
+  const hasMore = docs.length > limit;
+  if (hasMore) docs.pop();
+  return {
+    items: docs,
+    nextCursor: hasMore ? docs[docs.length - 1]._id.toString() : undefined,
+  };
+}
+
 export const activityService = {
-  async findAll(): Promise<ActivityDocument[]> {
-    return ActivityModel.find().sort({ createdAt: -1 }).populate("owner").exec();
+  async findAll(
+    opts: PaginationOptions = {},
+  ): Promise<PaginatedResult<ActivityDocument>> {
+    const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
+    const filter = opts.cursor
+      ? { _id: { $lt: new Types.ObjectId(opts.cursor) } }
+      : {};
+    const docs = await ActivityModel.find(filter)
+      .sort({ _id: -1 })
+      .limit(limit + 1)
+      .populate("owner")
+      .exec();
+    return buildPage(docs, limit);
   },
 
   async findLatest(): Promise<ActivityDocument[]> {
@@ -50,11 +86,22 @@ export const activityService = {
       .exec();
   },
 
-  async findByUser(userId: string): Promise<ActivityDocument[]> {
-    return ActivityModel.find({ owner: userId })
-      .sort({ createdAt: -1 })
+  async findByUser(
+    userId: string,
+    opts: PaginationOptions = {},
+  ): Promise<PaginatedResult<ActivityDocument>> {
+    const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
+    const cursorCondition = opts.cursor
+      ? [{ _id: { $lt: new Types.ObjectId(opts.cursor) } }]
+      : [];
+    const docs = await ActivityModel.find({
+      $and: [{ owner: userId }, ...cursorCondition],
+    })
+      .sort({ _id: -1 })
+      .limit(limit + 1)
       .populate("owner")
       .exec();
+    return buildPage(docs, limit);
   },
 
   async findOne(id: string): Promise<ActivityDocument> {
@@ -77,10 +124,16 @@ export const activityService = {
     city: string,
     activity?: string,
     price?: number,
-  ): Promise<ActivityDocument[]> {
-    return ActivityModel.find({
+    opts: PaginationOptions = {},
+  ): Promise<PaginatedResult<ActivityDocument>> {
+    const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
+    const cursorCondition = opts.cursor
+      ? [{ _id: { $lt: new Types.ObjectId(opts.cursor) } }]
+      : [];
+    const docs = await ActivityModel.find({
       $and: [
         { city },
+        ...cursorCondition,
         ...(price ? [{ price: { $lte: price } }] : []),
         ...(activity
           ? [
@@ -94,8 +147,11 @@ export const activityService = {
           : []),
       ],
     })
+      .sort({ _id: -1 })
+      .limit(limit + 1)
       .populate("owner")
       .exec();
+    return buildPage(docs, limit);
   },
 
   async countDocuments(): Promise<number> {

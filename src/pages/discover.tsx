@@ -1,28 +1,46 @@
-import { Button, Grid, Group } from "@mantine/core";
+import { Button, Center, Grid, Group, Loader } from "@mantine/core";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import { useState } from "react";
 import { Activity, EmptyData, PageTitle } from "@/components";
 import { useAuth } from "@/hooks";
 import { activityService } from "@/server/activities/activity.service";
 import { connectDb } from "@/server/db";
 import { toActivityDtos } from "@/server/serialize";
-import type { ActivityDto } from "@/types/activity";
+import type { ActivityDto, PaginatedActivitiesResponse } from "@/types/activity";
 
 interface DiscoverProps {
-  readonly activities: readonly ActivityDto[];
+  readonly activities: ActivityDto[];
+  readonly nextCursor: string | null;
 }
 
-export const getServerSideProps: GetServerSideProps<
-  DiscoverProps
-> = async () => {
+export const getServerSideProps: GetServerSideProps<DiscoverProps> = async () => {
   await connectDb();
-  const activities = await activityService.findAll();
-  return { props: { activities: toActivityDtos(activities) } };
+  const { items, nextCursor } = await activityService.findAll();
+  return {
+    props: { activities: toActivityDtos(items), nextCursor: nextCursor ?? null },
+  };
 };
 
-export default function Discover({ activities }: DiscoverProps) {
+export default function Discover({ activities: initial, nextCursor: initialCursor }: DiscoverProps) {
   const { user } = useAuth();
+  const [activities, setActivities] = useState<ActivityDto[]>(initial);
+  const [cursor, setCursor] = useState<string | null>(initialCursor);
+  const [loading, setLoading] = useState(false);
+
+  const loadMore = async () => {
+    if (!cursor) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/activities?cursor=${cursor}`);
+      const data: PaginatedActivitiesResponse = await res.json();
+      setActivities((prev) => [...prev, ...data.items]);
+      setCursor(data.nextCursor ?? null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -46,6 +64,18 @@ export default function Discover({ activities }: DiscoverProps) {
           <EmptyData />
         )}
       </Grid>
+      {cursor && (
+        <Center mt="xl">
+          <Button onClick={() => { void loadMore(); }} loading={loading} variant="outline">
+            Charger plus
+          </Button>
+        </Center>
+      )}
+      {loading && !cursor && (
+        <Center mt="md">
+          <Loader size="sm" />
+        </Center>
+      )}
     </>
   );
 }

@@ -48,34 +48,33 @@ describe("activityService.findByCity", () => {
 
     it("matches accented names from an unaccented query", async () => {
       const result = await activityService.findByCity("Paris", "creme");
-      expect(result).toHaveLength(3);
+      expect(result.items).toHaveLength(3);
     });
 
     it("matches unaccented names from an accented query", async () => {
       const result = await activityService.findByCity("Paris", "crème");
-      expect(result).toHaveLength(3);
+      expect(result.items).toHaveLength(3);
     });
 
     it("is case-insensitive", async () => {
       const result = await activityService.findByCity("Paris", "CREME");
-      expect(result).toHaveLength(3);
+      expect(result.items).toHaveLength(3);
     });
 
     it("filters out non-matching names", async () => {
       const result = await activityService.findByCity("Paris", "cafe");
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe("Café");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].name).toBe("Café");
     });
 
     it("escapes regex special characters instead of crashing", async () => {
-      await expect(
-        activityService.findByCity("Paris", "crème.*("),
-      ).resolves.toEqual([]);
+      const result = await activityService.findByCity("Paris", "crème.*(");
+      expect(result.items).toEqual([]);
     });
 
     it("returns all activities of the city when query is empty", async () => {
       const result = await activityService.findByCity("Paris", "");
-      expect(result).toHaveLength(4);
+      expect(result.items).toHaveLength(4);
     });
   });
 
@@ -91,19 +90,19 @@ describe("activityService.findByCity", () => {
 
     it("includes activities at the price boundary ($lte, not $lt)", async () => {
       const result = await activityService.findByCity("Lyon", undefined, 50);
-      expect(result.map((a) => a.name).sort((a, b) => a.localeCompare(b))).toEqual(["A", "B"]);
+      expect(result.items.map((a) => a.name).sort((a, b) => a.localeCompare(b))).toEqual(["A", "B"]);
     });
 
     it("excludes activities above the cap", async () => {
       const result = await activityService.findByCity("Lyon", undefined, 50);
-      const names = result.map((a) => a.name);
+      const names = result.items.map((a) => a.name);
       expect(names).not.toContain("C");
       expect(names).not.toContain("D");
     });
 
     it("returns everything when no price is provided", async () => {
       const result = await activityService.findByCity("Lyon");
-      expect(result).toHaveLength(4);
+      expect(result.items).toHaveLength(4);
     });
   });
 
@@ -117,8 +116,8 @@ describe("activityService.findByCity", () => {
       ]);
 
       const result = await activityService.findByCity("Paris", "creme", 50);
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe("Crème brûlée");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].name).toBe("Crème brûlée");
     });
   });
 });

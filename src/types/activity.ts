@@ -16,3 +16,8 @@ export interface CreateActivityInput {
   description: string;
   price: number;
 }
+
+export interface PaginatedActivitiesResponse {
+  items: ActivityDto[];
+  nextCursor?: string;
+}

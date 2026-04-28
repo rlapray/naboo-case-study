@@ -4,6 +4,11 @@ import { withMethods } from "@/server/api";
 import { requireUser } from "@/server/auth/session";
 import { toActivityDto, toActivityDtos } from "@/server/serialize";
 
+const getQuerySchema = z.object({
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
+
 const createSchema = z.object({
   name: z.string().min(1).max(120),
   city: z.string().min(1).max(120),
@@ -12,9 +17,10 @@ const createSchema = z.object({
 });
 
 export default withMethods({
-  GET: async (_req, res) => {
-    const activities = await activityService.findAll();
-    res.status(200).json(toActivityDtos(activities));
+  GET: async (req, res) => {
+    const { cursor, limit } = getQuerySchema.parse(req.query);
+    const { items, nextCursor } = await activityService.findAll({ cursor, limit });
+    res.status(200).json({ items: toActivityDtos(items), nextCursor });
   },
   POST: async (req, res) => {
     const user = await requireUser(req);
