@@ -1,4 +1,5 @@
-Prépend tes appels bash avec rtk (Rust Token Killer) pour limiter le cout en token.
+- Prépend tes appels bash avec rtk (Rust Token Killer) pour limiter le cout en token.
+- Utilise Context7 pour la documentation, migration, etc...
 
 ## Routine qualité code
 
