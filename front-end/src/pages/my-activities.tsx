@@ -1,16 +1,16 @@
+import { Button, Grid, Group } from "@mantine/core";
+import type { GetServerSideProps } from "next";
+import Head from "next/head";
+import Link from "next/link";
 import { Activity, EmptyData, PageTitle } from "@/components";
 import { graphqlClient } from "@/graphql/apollo";
-import {
+import type {
   GetUserActivitiesQuery,
   GetUserActivitiesQueryVariables,
 } from "@/graphql/generated/types";
 import GetUserActivities from "@/graphql/queries/activity/getUserActivities";
 import { withAuth } from "@/hocs";
 import { useAuth } from "@/hooks";
-import { Button, Grid, Group } from "@mantine/core";
-import { GetServerSideProps } from "next";
-import Head from "next/head";
-import Link from "next/link";
 
 interface MyActivitiesProps {
   activities: GetUserActivitiesQuery["getActivitiesByUser"];
@@ -19,14 +19,18 @@ interface MyActivitiesProps {
 export const getServerSideProps: GetServerSideProps<
   MyActivitiesProps
 > = async ({ req }) => {
-  const response = await graphqlClient.query<
-    GetUserActivitiesQuery,
-    GetUserActivitiesQueryVariables
-  >({
-    query: GetUserActivities,
-    context: { headers: { Cookie: req.headers.cookie } },
-  });
-  return { props: { activities: response.data.getActivitiesByUser } };
+  try {
+    const response = await graphqlClient.query<
+      GetUserActivitiesQuery,
+      GetUserActivitiesQueryVariables
+    >({
+      query: GetUserActivities,
+      context: { headers: { Cookie: req.headers.cookie } },
+    });
+    return { props: { activities: response.data.getActivitiesByUser } };
+  } catch {
+    return { redirect: { destination: "/signin", permanent: false } };
+  }
 };
 
 const MyActivities = ({ activities }: MyActivitiesProps) => {
