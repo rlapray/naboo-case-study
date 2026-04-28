@@ -68,7 +68,7 @@ export const activityService = {
   },
 
   async findCities(): Promise<string[]> {
-    return ActivityModel.distinct<string>("city").exec();
+    return ActivityModel.distinct("city").exec();
   },
 
   async findByCity(
