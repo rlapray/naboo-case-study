@@ -1,0 +1,10 @@
+{
+  "name": "naboo-case-study",
+  "private": true,
+  "devDependencies": {
+    "lefthook": "^1.7.0"
+  },
+  "scripts": {
+    "prepare": "lefthook install"
+  }
+}
