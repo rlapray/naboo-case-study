@@ -4,6 +4,7 @@ import { FlatCompat } from "@eslint/eslintrc";
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import importX from "eslint-plugin-import-x";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,6 +17,7 @@ export default defineConfig([
   ...compat.extends("plugin:sonarjs/recommended-legacy"),
   {
     files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
+    plugins: { "import-x": importX },
     languageOptions: {
       parserOptions: {
         project: "./tsconfig.json",
@@ -23,12 +25,16 @@ export default defineConfig([
       },
     },
     settings: {
-      "import/resolver": {
+      "import-x/resolver": {
         typescript: { project: "./tsconfig.json" },
       },
     },
     rules: {
-      "import/order": [
+      // `import/order` from eslint-plugin-import crashes on auto-fix under ESLint 10
+      // (getTokenOrCommentBefore was removed). Disable it and use the maintained
+      // fork eslint-plugin-import-x for the same behavior.
+      "import/order": "off",
+      "import-x/order": [
         "warn",
         {
           groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
@@ -36,7 +42,7 @@ export default defineConfig([
           alphabetize: { order: "asc", caseInsensitive: true },
         },
       ],
-      "import/no-default-export": "off",
+      "import-x/no-default-export": "off",
       "sonarjs/cognitive-complexity": ["warn", 15],
       "sonarjs/prefer-read-only-props": "warn",
       "sonarjs/no-ignored-exceptions": "warn",
