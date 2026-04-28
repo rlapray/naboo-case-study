@@ -19,25 +19,24 @@ export function Filters({
     <Flex
       gap="md"
       direction="column"
-      sx={(tm) => ({
+      style={{
         width: "100%",
-        borderRadius: tm.radius.md,
-        backgroundColor: tm.colors.gray[2],
-        padding: tm.spacing.md,
+        borderRadius: "var(--mantine-radius-md)",
+        backgroundColor: "var(--mantine-color-gray-2)",
+        padding: "var(--mantine-spacing-md)",
         position: "sticky",
         top: "10px",
-      })}
+      }}
     >
       <TextInput
-        icon={<IconWalk />}
+        leftSection={<IconWalk />}
         placeholder="Activité"
         onChange={(e) => setSearchActivity(e.target.value || undefined)}
         value={activity}
       />
       <NumberInput
-        icon={<IconCurrencyEuro />}
+        leftSection={<IconCurrencyEuro />}
         placeholder="Prix max"
-        type="number"
         onChange={(e) => setSearchPrice(Number(e) || undefined)}
         value={price}
       />

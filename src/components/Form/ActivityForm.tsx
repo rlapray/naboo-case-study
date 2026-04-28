@@ -99,7 +99,7 @@ export default function ActivityForm() {
           type="number"
           {...form.getInputProps("price")}
         />
-        <Group position="right" mt="md">
+        <Group justify="flex-end" mt="md">
           <Button loading={isLoading} type="submit">
             Valider
           </Button>

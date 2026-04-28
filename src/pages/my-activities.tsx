@@ -33,7 +33,7 @@ const MyActivities = ({ activities }: MyActivitiesProps) => {
       <Head>
         <title>Mes activités | CDTR</title>
       </Head>
-      <Group position="apart">
+      <Group justify="space-between">
         <PageTitle title="Mes activités" />
         {user && (
           <Link href="/activities/create">

@@ -1,14 +1,12 @@
 import { Card, Image, Text } from "@mantine/core";
 import Link from "next/link";
-import { useGlobalStyles } from "@/utils";
+import classes from "@/utils/global.module.css";
 
 interface CityProps {
   readonly city: string;
 }
 
 export function City({ city }: CityProps) {
-  const { classes } = useGlobalStyles();
-
   return (
     <Link href={`/explorer/${city}`} className={classes.link}>
       <Card
@@ -16,7 +14,7 @@ export function City({ city }: CityProps) {
         padding="lg"
         radius="md"
         withBorder
-        sx={{ width: "100%" }}
+        style={{ width: "100%" }}
       >
         <Card.Section>
           <Image
@@ -25,10 +23,10 @@ export function City({ city }: CityProps) {
             alt="random image of city"
           />
         </Card.Section>
-        <Text mt="md" weight="bold">
+        <Text mt="md" fw="bold">
           {city}
         </Text>
-        <Text mt="md" sx={{ height: "3rem" }} className={classes.ellipsis}>
+        <Text mt="md" style={{ height: "3rem" }} className={classes.ellipsis}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
           eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
           minim veniam, quis nostrud exercitation ullamco laboris nisi ut

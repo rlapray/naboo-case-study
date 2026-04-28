@@ -18,8 +18,8 @@ export function withoutAuth<P extends object>(WrappedComponent: ComponentType<P>
 
     if (isLoading)
       return (
-        <Box sx={{ textAlign: "center" }}>
-          <Loader sx={{ marginTop: "10rem" }} />
+        <Box style={{ textAlign: "center" }}>
+          <Loader style={{ marginTop: "10rem" }} />
         </Box>
       );
 

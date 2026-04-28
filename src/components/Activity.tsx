@@ -1,15 +1,13 @@
 import { Badge, Button, Card, Grid, Group, Image, Text } from "@mantine/core";
 import Link from "next/link";
 import type { ActivityDto } from "@/types/activity";
-import { useGlobalStyles } from "@/utils";
+import classes from "@/utils/global.module.css";
 
 interface ActivityProps {
   readonly activity: ActivityDto;
 }
 
 export function Activity({ activity }: ActivityProps) {
-  const { classes } = useGlobalStyles();
-
   return (
     <Grid.Col span={4}>
       <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -21,8 +19,8 @@ export function Activity({ activity }: ActivityProps) {
           />
         </Card.Section>
 
-        <Group position="apart" mt="md" mb="xs">
-          <Text weight={500} className={classes.ellipsis}>
+        <Group justify="space-between" mt="md" mb="xs">
+          <Text fw={500} className={classes.ellipsis}>
             {activity.name}
           </Text>
         </Group>
@@ -36,7 +34,7 @@ export function Activity({ activity }: ActivityProps) {
           </Badge>
         </Group>
 
-        <Text size="sm" color="dimmed" className={classes.ellipsis}>
+        <Text size="sm" c="dimmed" className={classes.ellipsis}>
           {activity.description}
         </Text>
 

@@ -1,12 +1,11 @@
 import { ActionIcon, Center, Menu } from "@mantine/core";
 import { IconChevronDown } from "@tabler/icons-react";
 import Link from "next/link";
-import { useTopbarStyles } from "./Topbar.styles";
+import classes from "./Topbar.module.css";
 import type { Route } from "./types";
 
 export function MenuItem({ route, label, icon }: Route) {
   const Icon = icon;
-  const { classes } = useTopbarStyles();
 
   return typeof route === "string" ? (
     <Link href={route} className={classes.link}>
@@ -39,7 +38,12 @@ export function MenuItem({ route, label, icon }: Route) {
       </Menu.Target>
       <Menu.Dropdown>
         {route.map((item) => (
-          <Menu.Item key={item.link} component={Link} href={item.link} className={classes.menuItemLink}>
+          <Menu.Item
+            key={item.link}
+            component={Link}
+            href={item.link}
+            className={classes.menuItemLink}
+          >
             {item.label}
           </Menu.Item>
         ))}

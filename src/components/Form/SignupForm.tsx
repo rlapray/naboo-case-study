@@ -55,9 +55,9 @@ export default function SignupForm() {
           placeholder="Doe"
           {...form.getInputProps("lastName")}
         />
-        <Box mt="md" sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Box mt="md" style={{ display: "flex", justifyContent: "space-between" }}>
           <Link href="/signin">
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Box style={{ display: "flex", flexDirection: "column" }}>
               <span>Vous avez déjà un compte ?</span>
               <span>Se connecter</span>
             </Box>

@@ -57,7 +57,7 @@ export default function ActivityDetails({ activity }: ActivityDetailsProps) {
               </Badge>
             </Group>
             <Text size="sm">{activity.description}</Text>
-            <Text size="sm" color="dimmed">
+            <Text size="sm" c="dimmed">
               Ajouté par {activity.owner.firstName} {activity.owner.lastName}
             </Text>
           </Flex>

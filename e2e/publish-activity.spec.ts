@@ -26,7 +26,7 @@ test.describe("Publier une Activité", () => {
     await page.getByLabel("Nom de l'activité").fill(activityName);
     await page.getByLabel("Description").fill("Description du parcours e2e");
 
-    const citySelect = page.getByLabel("Localisation");
+    const citySelect = page.getByRole("textbox", { name: "Localisation" });
     await citySelect.click();
     await citySelect.fill("Bordeaux");
     await page.getByRole("option", { name: "Bordeaux" }).click();
@@ -47,7 +47,7 @@ test.describe("Publier une Activité", () => {
     await page.getByLabel("Nom de l'activité").fill("Test prix invalide");
     await page.getByLabel("Description").fill("Lorem ipsum");
 
-    const citySelect = page.getByLabel("Localisation");
+    const citySelect = page.getByRole("textbox", { name: "Localisation" });
     await citySelect.click();
     await citySelect.fill("Bordeaux");
     await page.getByRole("option", { name: "Bordeaux" }).click();

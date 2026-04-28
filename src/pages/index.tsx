@@ -7,7 +7,7 @@ import { activityService } from "@/server/activities/activity.service";
 import { connectDb } from "@/server/db";
 import { toActivityDtos } from "@/server/serialize";
 import type { ActivityDto } from "@/types/activity";
-import { useGlobalStyles } from "@/utils";
+import classes from "@/utils/global.module.css";
 
 interface HomeProps {
   readonly activities: readonly ActivityDto[];
@@ -20,8 +20,6 @@ export const getServerSideProps: GetServerSideProps<HomeProps> = async () => {
 };
 
 export default function Home({ activities }: HomeProps) {
-  const { classes } = useGlobalStyles();
-
   return (
     <>
       <Head>

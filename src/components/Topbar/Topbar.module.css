@@ -1,0 +1,60 @@
+.header {
+  background-color: var(--mantine-color-teal-filled);
+  border-bottom: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.title {
+  color: var(--mantine-color-white);
+  margin: 0;
+  font-size: var(--mantine-font-size-xl);
+}
+
+.inner {
+  height: 3.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.links {
+  @media (max-width: 48em) {
+    display: none;
+  }
+}
+
+.burger {
+  @media (min-width: 48em) {
+    display: none;
+  }
+}
+
+.mainLink {
+  text-decoration: none;
+}
+
+.menuItemLink {
+  text-decoration: none;
+  color: var(--mantine-color-black);
+}
+
+.link {
+  display: block;
+  line-height: 1;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--mantine-radius-sm);
+  text-decoration: none;
+  color: var(--mantine-color-white);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+}
+
+.link:hover {
+  background-color: color-mix(in srgb, var(--mantine-color-teal-filled) 90%, white 10%);
+}
+
+.linkLabel {
+  margin-right: 0.3125rem;
+}

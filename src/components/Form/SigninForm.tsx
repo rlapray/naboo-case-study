@@ -34,9 +34,9 @@ export default function SigninForm() {
           type="password"
           {...form.getInputProps("password")}
         />
-        <Box mt="md" sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Box mt="md" style={{ display: "flex", justifyContent: "space-between" }}>
           <Link href="/signup">
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Box style={{ display: "flex", flexDirection: "column" }}>
               <span>Vous n&apos;avez pas encore de compte ?</span>
               <span>S&apos;inscrire</span>
             </Box>
