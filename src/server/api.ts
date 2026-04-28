@@ -21,7 +21,6 @@ export function errorToResponse(err: unknown): { status: number; body: ApiErrorB
   if (err instanceof UnauthorizedError) return { status: 401, body: { error: err.message } };
   if (err instanceof NotFoundError) return { status: 404, body: { error: err.message } };
   if (err instanceof ConflictError) return { status: 409, body: { error: err.message } };
-  // eslint-disable-next-line no-console
   console.error("[api] unexpected error:", err);
   return { status: 500, body: { error: "Internal Server Error" } };
 }

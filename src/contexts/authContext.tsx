@@ -40,7 +40,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       })
       .catch((err: unknown) => {
         if (!(err instanceof ApiError) || err.status !== 401) {
-          // eslint-disable-next-line no-console
           console.error(err);
         }
         if (!cancelled) setUser(null);

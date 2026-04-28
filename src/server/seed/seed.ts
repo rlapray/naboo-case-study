@@ -28,10 +28,8 @@ export async function seed(): Promise<void> {
 export async function runSeedCli(): Promise<void> {
   try {
     await seed();
-    // eslint-disable-next-line no-console
     console.log("Seeding successful!");
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error("Seeding failed:", err);
     process.exitCode = 1;
   } finally {
