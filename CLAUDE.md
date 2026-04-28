@@ -2,11 +2,11 @@ Prépend tes appels bash avec rtk (Rust Token Killer) pour limiter le cout en to
 
 ## Routine qualité code
 
-Après toute modification de code dans `front-end/` ou `back-end/`, lance dans le workspace concerné :
+Après toute modification de code dans `src/`, lance à la racine :
 
 ```sh
-npm run verify       # lint + typecheck (+ format côté back)
-npm run verify:test  # tests unitaires
+npm run verify       # lint + typecheck
+npm run verify:test  # vitest run (unit + intégration serveur)
 ```
 
 Si une commande échoue, corrige avant de continuer.
@@ -15,4 +15,6 @@ Ne jamais utiliser `--no-verify` sur un `git commit` ou `git push` ; corrige plu
 
 ## Stack
 
-Monorepo : `front-end/` (Next.js 13 + Vitest + Playwright), `back-end/` (NestJS + Jest + MongoDB). npm sur les deux. Lefthook au root.
+Application Next.js 13 (Pages Router) unique à la racine. Mongo en service externe via docker-compose. Tests unit/intégration en Vitest (avec mongodb-memory-server pour la couche serveur), e2e en Playwright. Lefthook orchestre les hooks git.
+
+Code serveur sous `src/server/` (mongoose schemas, services, auth, seed) ; route handlers REST sous `src/pages/api/**` ; client (pages, composants Mantine, contexts) sous `src/`. DTOs partagés client/serveur dans `src/types/`. `getServerSideProps` appelle directement les services serveur — pas de bouclage HTTP self-call.

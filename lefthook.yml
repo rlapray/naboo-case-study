@@ -1,27 +1,15 @@
 pre-commit:
   parallel: true
   commands:
-    front-verify:
-      root: front-end/
-      glob: "front-end/**/*.{ts,tsx,js,jsx}"
+    verify:
+      glob: "{src,e2e,scripts}/**/*.{ts,tsx,js,jsx}"
       run: npm run verify
       stage_fixed: true
-    front-test:
-      root: front-end/
-      glob: "front-end/**/*.{ts,tsx,js,jsx}"
-      run: npm run verify:test
-    back-verify:
-      root: back-end/
-      glob: "back-end/**/*.{ts,js}"
-      run: npm run verify
-      stage_fixed: true
-    back-test:
-      root: back-end/
-      glob: "back-end/**/*.{ts,js}"
+    verify-test:
+      glob: "src/**/*.{ts,tsx,js,jsx}"
       run: npm run verify:test
 
 pre-push:
   commands:
-    front-e2e:
-      root: front-end/
+    e2e:
       run: npm run e2e
