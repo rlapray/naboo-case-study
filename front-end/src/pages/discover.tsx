@@ -1,15 +1,15 @@
+import { Button, Grid, Group } from "@mantine/core";
+import type { GetServerSideProps } from "next";
+import Head from "next/head";
+import Link from "next/link";
 import { Activity, EmptyData, PageTitle } from "@/components";
 import { graphqlClient } from "@/graphql/apollo";
-import {
+import type {
   GetActivitiesQuery,
   GetActivitiesQueryVariables,
 } from "@/graphql/generated/types";
 import GetActivities from "@/graphql/queries/activity/getActivities";
 import { useAuth } from "@/hooks";
-import { Button, Grid, Group } from "@mantine/core";
-import { GetServerSideProps } from "next";
-import Head from "next/head";
-import Link from "next/link";
 
 interface DiscoverProps {
   activities: GetActivitiesQuery["getActivities"];

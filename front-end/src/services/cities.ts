@@ -1,5 +1,5 @@
-import { City } from "@/utils";
-import { AxiosResponse } from "axios";
+import type { AxiosResponse } from "axios";
+import type { City } from "@/utils";
 import { axiosInstance } from "./axios";
 
 export function searchCity(search: string): Promise<City[]> {

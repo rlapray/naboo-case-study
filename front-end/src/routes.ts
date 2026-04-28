@@ -1,5 +1,5 @@
 import { IconUserCircle } from "@tabler/icons-react";
-import { Route } from "./components/Topbar";
+import type { Route } from "./components/Topbar";
 
 export const routes: Route[] = [
   { label: "Découvrez des activités", route: "/discover" },

@@ -1,8 +1,8 @@
+import { Paper } from "@mantine/core";
+import Head from "next/head";
 import { PageTitle } from "@/components";
 import ActivityForm from "@/components/Form/ActivityForm";
 import { withAuth } from "@/hocs";
-import { Paper } from "@mantine/core";
-import Head from "next/head";
 
 const CreateActivity = () => {
   return (

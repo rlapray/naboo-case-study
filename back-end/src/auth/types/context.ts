@@ -1,4 +1,4 @@
-import { PayloadDto } from './jwtPayload.dto';
+import type { PayloadDto } from './jwtPayload.dto';
 
 export interface ContextWithJWTPayload {
   jwtPayload: PayloadDto;

@@ -1,7 +1,7 @@
-import { ActivityFragment } from "@/graphql/generated/types";
-import { useGlobalStyles } from "@/utils";
 import { Box, Button, Flex, Image, Text } from "@mantine/core";
 import Link from "next/link";
+import type { ActivityFragment } from "@/graphql/generated/types";
+import { useGlobalStyles } from "@/utils";
 
 interface ActivityListItemProps {
   activity: ActivityFragment;

@@ -84,7 +84,14 @@ export class ActivityService {
           { city },
           ...(price ? [{ price: { $lte: price } }] : []),
           ...(activity
-            ? [{ name: { $regex: buildDiacriticInsensitiveRegex(activity), $options: 'i' } }]
+            ? [
+                {
+                  name: {
+                    $regex: buildDiacriticInsensitiveRegex(activity),
+                    $options: 'i',
+                  },
+                },
+              ]
             : []),
         ],
       })

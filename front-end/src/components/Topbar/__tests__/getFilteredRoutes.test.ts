@@ -1,6 +1,6 @@
-import { GetUserQuery } from "@/graphql/generated/types";
+import type { GetUserQuery } from "@/graphql/generated/types";
 import { checkRouteAccess, getFilteredRoutes } from "../getFilteredRoutes";
-import { Route, SubRoute } from "../types";
+import type { Route, SubRoute } from "../types";
 
 interface CheckRouteAccessTest {
   description: string;

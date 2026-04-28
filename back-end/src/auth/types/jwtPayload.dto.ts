@@ -1,6 +1,6 @@
-export type PayloadDto = {
+export interface PayloadDto {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-};
+}

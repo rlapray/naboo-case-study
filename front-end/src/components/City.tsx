@@ -1,6 +1,6 @@
-import { useGlobalStyles } from "@/utils";
 import { Card, Image, Text } from "@mantine/core";
 import Link from "next/link";
+import { useGlobalStyles } from "@/utils";
 
 interface CityProps {
   city: string;

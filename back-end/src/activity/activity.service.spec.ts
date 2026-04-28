@@ -1,6 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import type { Model } from 'mongoose';
+import { Types } from 'mongoose';
 import { ActivityService } from './activity.service';
 import { ActivityModule } from './activity.module';
 import { TestModule, closeInMongodConnection } from 'src/test/test.module';
@@ -18,7 +20,9 @@ describe('ActivityService', () => {
     }).compile();
 
     service = moduleRef.get<ActivityService>(ActivityService);
-    activityModel = moduleRef.get<Model<Activity>>(getModelToken(Activity.name));
+    activityModel = moduleRef.get<Model<Activity>>(
+      getModelToken(Activity.name),
+    );
   });
 
   beforeEach(async () => {
@@ -75,9 +79,9 @@ describe('ActivityService', () => {
     });
 
     it('escapes regex special characters instead of crashing', async () => {
-      await expect(
-        service.findByCity('Paris', 'crème.*('),
-      ).resolves.toEqual([]);
+      await expect(service.findByCity('Paris', 'crème.*(')).resolves.toEqual(
+        [],
+      );
     });
 
     it('returns all activities of the city when query is empty', async () => {

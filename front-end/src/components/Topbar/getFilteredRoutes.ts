@@ -1,5 +1,5 @@
-import { GetUserQuery } from "@/graphql/generated/types";
-import { Route, SubRoute } from "./types";
+import type { GetUserQuery } from "@/graphql/generated/types";
+import type { Route, SubRoute } from "./types";
 
 export const checkRouteAccess = (
   route: Route | SubRoute,

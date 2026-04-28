@@ -1,6 +1,6 @@
 import { Flex, NumberInput, TextInput } from "@mantine/core";
 import { IconCurrencyEuro, IconWalk } from "@tabler/icons-react";
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 interface FiltersProps {
   activity: string | undefined;
