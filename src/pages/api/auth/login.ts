@@ -2,6 +2,7 @@ import { z } from "zod";
 import { withMethods } from "@/server/api";
 import { authService } from "@/server/auth/auth.service";
 import { setJwtCookie } from "@/server/auth/cookies";
+import { rateLimit } from "@/server/rate-limit";
 import { toUserDto } from "@/server/serialize";
 
 const bodySchema = z.object({
@@ -11,6 +12,7 @@ const bodySchema = z.object({
 
 export default withMethods({
   POST: async (req, res) => {
+    rateLimit(req, { bucket: "auth:login", max: 10, windowMs: 60_000 });
     const input = bodySchema.parse(req.body);
     const result = await authService.signIn(input);
     const expiresIn = Number(process.env.JWT_EXPIRATION_TIME ?? "86400");

@@ -25,3 +25,12 @@ export class ConflictError extends Error {
     this.name = "ConflictError";
   }
 }
+
+export class TooManyRequestsError extends Error {
+  readonly retryAfterSeconds: number;
+  constructor(retryAfterSeconds: number, message = "Too many requests") {
+    super(message);
+    this.name = "TooManyRequestsError";
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}

@@ -5,6 +5,7 @@ import {
   BadRequestError,
   ConflictError,
   NotFoundError,
+  TooManyRequestsError,
   UnauthorizedError,
 } from "./errors";
 
@@ -13,7 +14,13 @@ export interface ApiErrorBody {
   details?: unknown;
 }
 
-export function errorToResponse(err: unknown): { status: number; body: ApiErrorBody } {
+export interface ErrorResponse {
+  status: number;
+  body: ApiErrorBody;
+  headers?: Record<string, string>;
+}
+
+export function errorToResponse(err: unknown): ErrorResponse {
   if (err instanceof ZodError) {
     return { status: 400, body: { error: "Validation error", details: err.issues } };
   }
@@ -21,6 +28,13 @@ export function errorToResponse(err: unknown): { status: number; body: ApiErrorB
   if (err instanceof UnauthorizedError) return { status: 401, body: { error: err.message } };
   if (err instanceof NotFoundError) return { status: 404, body: { error: err.message } };
   if (err instanceof ConflictError) return { status: 409, body: { error: err.message } };
+  if (err instanceof TooManyRequestsError) {
+    return {
+      status: 429,
+      body: { error: err.message },
+      headers: { "Retry-After": String(err.retryAfterSeconds) },
+    };
+  }
   console.error("[api] unexpected error:", err);
   return { status: 500, body: { error: "Internal Server Error" } };
 }
@@ -43,7 +57,10 @@ export function withMethods(handlers: Handlers): NextApiHandler {
       await connectDb();
       await handler(req, res);
     } catch (err) {
-      const { status, body } = errorToResponse(err);
+      const { status, body, headers } = errorToResponse(err);
+      if (headers) {
+        for (const [k, v] of Object.entries(headers)) res.setHeader(k, v);
+      }
       res.status(status).json(body);
     }
   };
