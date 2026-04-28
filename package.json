@@ -81,7 +81,11 @@
       "ignoreGhsas": []
     },
     "overrides": {
-      "minimatch@9": "^9.0.7"
+      "minimatch@9": "^9.0.7",
+      "postcss": "^8.5.10"
     }
+  },
+  "comments": {
+    "pnpm.overrides.postcss": "Force postcss >=8.5.10 — fix GHSA-qx2v-qp2m-jg93 (XSS via </style> dans CSS Stringify). Transitive de next@16.2.4 encore pinné <8.5.10. À retirer quand Next bumpera postcss. Source: https://github.com/advisories/GHSA-qx2v-qp2m-jg93"
   }
 }
