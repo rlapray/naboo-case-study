@@ -19,7 +19,7 @@ export async function seed(): Promise<void> {
   if (!userExisted && user) {
     await Promise.all(
       activitiesSeed.map((activity) =>
-        activityService.create(user!._id.toString(), activity),
+        activityService.create(user._id.toString(), activity),
       ),
     );
   }
