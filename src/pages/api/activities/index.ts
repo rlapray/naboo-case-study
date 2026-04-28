@@ -5,10 +5,10 @@ import { requireUser } from "@/server/auth/session";
 import { toActivityDto, toActivityDtos } from "@/server/serialize";
 
 const createSchema = z.object({
-  name: z.string().min(1),
-  city: z.string().min(1),
-  description: z.string().min(1),
-  price: z.number().int().min(1),
+  name: z.string().min(1).max(120),
+  city: z.string().min(1).max(120),
+  description: z.string().min(1).max(2000),
+  price: z.number().int().min(1).max(1_000_000),
 });
 
 export default withMethods({
