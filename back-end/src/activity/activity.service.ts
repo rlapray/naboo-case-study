@@ -4,6 +4,31 @@ import { Model } from 'mongoose';
 import { Activity } from './activity.schema';
 import { CreateActivityInput } from './activity.inputs.dto';
 
+const DIACRITIC_GROUPS: Record<string, string> = {
+  a: '[aàáâãäåæ]',
+  c: '[cç]',
+  e: '[eèéêë]',
+  i: '[iìíîï]',
+  n: '[nñ]',
+  o: '[oòóôõöø]',
+  u: '[uùúûü]',
+  y: '[yýÿ]',
+};
+
+const REGEX_SPECIALS = /[.*+?^${}()|[\]\\]/;
+
+function buildDiacriticInsensitiveRegex(input: string): string {
+  const stripped = input.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  let out = '';
+  for (const ch of stripped) {
+    const group = DIACRITIC_GROUPS[ch.toLowerCase()];
+    if (group) out += group;
+    else if (REGEX_SPECIALS.test(ch)) out += '\\' + ch;
+    else out += ch;
+  }
+  return out;
+}
+
 @Injectable()
 export class ActivityService {
   constructor(
@@ -57,8 +82,10 @@ export class ActivityService {
       .find({
         $and: [
           { city },
-          ...(price ? [{ price }] : []),
-          ...(activity ? [{ name: { $regex: activity, $options: 'i' } }] : []),
+          ...(price ? [{ price: { $lte: price } }] : []),
+          ...(activity
+            ? [{ name: { $regex: buildDiacriticInsensitiveRegex(activity), $options: 'i' } }]
+            : []),
         ],
       })
       .exec();
