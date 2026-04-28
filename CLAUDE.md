@@ -1,0 +1,1 @@
+Prépend tes appels bash avec rtk (Rust Token Killer) pour limiter le cout en token.
