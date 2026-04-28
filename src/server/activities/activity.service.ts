@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { NotFoundError } from "../errors";
 // Register the User model up-front so .populate("owner") never races on first use.
 import "../users/user.schema";
@@ -57,6 +58,7 @@ export const activityService = {
   },
 
   async findOne(id: string): Promise<ActivityDocument> {
+    if (!Types.ObjectId.isValid(id)) throw new NotFoundError("Activity not found");
     const activity = await ActivityModel.findById(id).populate("owner").exec();
     if (!activity) throw new NotFoundError("Activity not found");
     return activity;
