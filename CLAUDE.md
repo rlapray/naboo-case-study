@@ -5,8 +5,8 @@ Prépend tes appels bash avec rtk (Rust Token Killer) pour limiter le cout en to
 Après toute modification de code dans `src/`, lance à la racine :
 
 ```sh
-npm run verify       # lint + typecheck
-npm run verify:test  # vitest run (unit + intégration serveur)
+pnpm verify       # lint + typecheck
+pnpm verify:test  # vitest run (unit + intégration serveur)
 ```
 
 Si une commande échoue, corrige avant de continuer.

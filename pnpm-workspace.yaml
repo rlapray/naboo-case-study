@@ -1,0 +1,19 @@
+# Cooldown : ne pas résoudre une version publiée il y a moins de 7 jours.
+# Laisse le temps à la communauté de détecter un paquet malveillant.
+# 1440 = 1 jour, 10080 = 7 jours.
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude: []   # ajouter ici un paquet pour bypasser le cooldown (ex. patch CVE)
+
+# Bloque les sources exotiques (git, tarball direct) pour les sous-dépendances.
+# Default true en pnpm 11 — on l'active explicitement.
+blockExoticSubdeps: true
+
+# Lifecycle scripts : bloqués par défaut depuis pnpm 10.
+# Échouer l'install si un paquet non explicitement listé veut exécuter un script de build.
+strictDepBuilds: true
+allowBuilds:
+  bcrypt: true              # binding natif (argon/bcrypt hashing)
+  esbuild: true             # compilateur JS (Next.js + Vitest)
+  lefthook: true            # binary git hooks
+  mongodb-memory-server: true  # télécharge le binaire MongoDB pour les tests
+  unrs-resolver: true       # resolver natif pour eslint-import-resolver-typescript

@@ -3,13 +3,25 @@ pre-commit:
   commands:
     verify:
       glob: "{src,e2e,scripts}/**/*.{ts,tsx,js,jsx}"
-      run: npm run verify
+      run: pnpm verify
       stage_fixed: true
     verify-test:
       glob: "src/**/*.{ts,tsx,js,jsx}"
-      run: npm run verify:test
+      run: pnpm verify:test
+    audit-prod:
+      glob: "{package.json,pnpm-lock.yaml}"
+      run: bash scripts/audit-check.sh --prod
+    audit-dev:
+      glob: "{package.json,pnpm-lock.yaml}"
+      run: bash scripts/audit-check.sh --dev
+    outdated-prod:
+      glob: "{package.json,pnpm-lock.yaml}"
+      run: bash scripts/outdated-check.sh --prod
+    outdated-dev:
+      glob: "{package.json,pnpm-lock.yaml}"
+      run: bash scripts/outdated-check.sh --dev
 
 pre-push:
   commands:
     e2e:
-      run: npm run e2e
+      run: pnpm e2e

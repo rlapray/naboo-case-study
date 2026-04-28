@@ -14,11 +14,11 @@ Application Next.js 13 (Pages Router) qui sert à la fois le rendu et l'API REST
 ## Démarrage
 
 ```sh
-npm i
+pnpm install
 cp .env.example .env
-npm run start:db   # docker-compose up -d  → Mongo sur :27017
-npm run seed       # crée user1@test.fr et 5 activités de démo
-npm run dev        # Next.js sur :3001
+pnpm start:db   # docker-compose up -d  → Mongo sur :27017
+pnpm seed       # crée user1@test.fr et 5 activités de démo
+pnpm dev        # Next.js sur :3001
 ```
 
 ## Variables d'env
@@ -40,15 +40,15 @@ password : `user1`
 
 | Script               | Effet                                             |
 |----------------------|---------------------------------------------------|
-| `npm run dev`        | Next.js dev sur :3001                              |
-| `npm run build`      | Build production                                   |
-| `npm run start`      | Next.js prod sur :3001                             |
-| `npm run seed`       | Seed Mongo (user de démo + activités)              |
-| `npm run start:db`   | Lance MongoDB via docker-compose                   |
-| `npm run stop:db`    | Stoppe MongoDB                                     |
-| `npm run verify`     | lint + typecheck                                   |
-| `npm run verify:test`| Vitest run (unit + intégration)                    |
-| `npm run e2e`        | Playwright (build + start sur :3002 + suite)       |
+| `pnpm dev`        | Next.js dev sur :3001                              |
+| `pnpm build`      | Build production                                   |
+| `pnpm start`      | Next.js prod sur :3001                             |
+| `pnpm seed`       | Seed Mongo (user de démo + activités)              |
+| `pnpm start:db`   | Lance MongoDB via docker-compose                   |
+| `pnpm stop:db`    | Stoppe MongoDB                                     |
+| `pnpm verify`     | lint + typecheck                                   |
+| `pnpm verify:test`| Vitest run (unit + intégration)                    |
+| `pnpm e2e`        | Playwright (build + start sur :3002 + suite)       |
 
 ## Architecture
 
@@ -71,5 +71,5 @@ docker-compose.yml     MongoDB 7
 
 ## Tests
 
-- **Unit / intégration serveur** : `npm run verify:test`. Vitest exécute aussi les tests serveur sous `src/server/` via `mongodb-memory-server`.
-- **E2E** : `npm run e2e`. Playwright lance `next build && next start -p 3002`, le `globalSetup` seed la base, puis exécute les 13 specs.
+- **Unit / intégration serveur** : `pnpm verify:test`. Vitest exécute aussi les tests serveur sous `src/server/` via `mongodb-memory-server`.
+- **E2E** : `pnpm e2e`. Playwright lance `next build && next start -p 3002`, le `globalSetup` seed la base, puis exécute les 13 specs.
