@@ -81,7 +81,7 @@ export default function ActivityDetails({
   return (
     <>
       <Head>
-        <title>{city} | CDTR</title>
+        <title>{`${city} | CDTR`}</title>
       </Head>
       <PageTitle
         title={`Activités pour la ville de ${city}`}

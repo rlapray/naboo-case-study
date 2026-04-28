@@ -35,7 +35,7 @@ export default function ActivityDetails({ activity }: ActivityDetailsProps) {
   return (
     <>
       <Head>
-        <title>{activity.name} | CDTR</title>
+        <title>{`${activity.name} | CDTR`}</title>
       </Head>
       <PageTitle title={activity.name} prevPath={router.back} />
       <Grid>
