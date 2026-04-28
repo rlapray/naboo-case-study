@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { getEnv } from "./env";
 
 interface MongooseGlobal {
   conn: typeof mongoose | null;
@@ -18,8 +19,7 @@ globalWithMongoose.__mongoose ??= cached;
 
 export async function connectDb(uri?: string): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn;
-  const target = uri ?? process.env.MONGO_URI;
-  if (!target) throw new Error("MONGO_URI is not defined");
+  const target = uri ?? getEnv().MONGO_URI;
 
   cached.promise ??= mongoose.connect(target, { bufferCommands: false });
   cached.conn = await cached.promise;

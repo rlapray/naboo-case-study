@@ -1,4 +1,5 @@
 import { sign, verify } from "jsonwebtoken";
+import { getEnv } from "../env";
 
 export interface JwtPayload {
   id: string;
@@ -7,28 +8,14 @@ export interface JwtPayload {
   lastName: string;
 }
 
-function getSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("JWT_SECRET is not defined");
-  return secret;
-}
-
-function getExpiresIn(): number {
-  const raw = process.env.JWT_EXPIRATION_TIME ?? "86400";
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n <= 0) {
-    throw new Error("JWT_EXPIRATION_TIME must be a positive number of seconds");
-  }
-  return n;
-}
-
 export function signToken(payload: JwtPayload): string {
-  return sign(payload, getSecret(), { expiresIn: getExpiresIn() });
+  const env = getEnv();
+  return sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRATION_TIME });
 }
 
 export function verifyToken(token: string): JwtPayload | null {
   try {
-    const decoded = verify(token, getSecret());
+    const decoded = verify(token, getEnv().JWT_SECRET);
     if (typeof decoded === "string") return null;
     const { id, email, firstName, lastName } = decoded as JwtPayload;
     if (!id || !email) return null;

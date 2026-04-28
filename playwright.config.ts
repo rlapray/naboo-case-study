@@ -23,5 +23,13 @@ export default defineConfig({
     url: "http://localhost:3002",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    env: {
+      MONGO_URI: process.env.MONGO_URI ?? "mongodb://localhost:27017/naboo",
+      JWT_SECRET:
+        process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 32
+          ? process.env.JWT_SECRET
+          : "e2e-jwt-secret-padding-xxxxxxxxxxxxxxxx",
+      JWT_EXPIRATION_TIME: process.env.JWT_EXPIRATION_TIME ?? "3600",
+    },
   },
 });
