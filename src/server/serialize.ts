@@ -1,21 +1,26 @@
 import type { Types } from "mongoose";
 import type { ActivityDto } from "@/types/activity";
-import type { UserDto } from "@/types/user";
+import type { PublicUserDto, UserDto } from "@/types/user";
 import type { ActivityDocument } from "./activities/activity.schema";
 import type { IUser, UserDocument } from "./users/user.schema";
 
+type AnyUser = UserDocument | (IUser & { _id: Types.ObjectId });
+
 interface PopulatedActivity extends Omit<ActivityDocument, "owner"> {
-  owner: UserDocument | (IUser & { _id: Types.ObjectId });
+  owner: AnyUser;
 }
 
-export function toUserDto(user: UserDocument | (IUser & { _id: Types.ObjectId })): UserDto {
+export function toPublicUserDto(user: AnyUser): PublicUserDto {
   return {
     id: user._id.toString(),
     role: user.role,
     firstName: user.firstName,
     lastName: user.lastName,
-    email: user.email,
   };
+}
+
+export function toUserDto(user: AnyUser): UserDto {
+  return { ...toPublicUserDto(user), email: user.email };
 }
 
 export function toActivityDto(activity: ActivityDocument): ActivityDto {
@@ -27,7 +32,7 @@ export function toActivityDto(activity: ActivityDocument): ActivityDto {
     description: populated.description,
     price: populated.price,
     createdAt: populated.createdAt.toISOString(),
-    owner: toUserDto(populated.owner),
+    owner: toPublicUserDto(populated.owner),
   };
 }
 

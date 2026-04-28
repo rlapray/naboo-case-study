@@ -1,4 +1,4 @@
-import type { UserDto } from "./user";
+import type { PublicUserDto } from "./user";
 
 export interface ActivityDto {
   id: string;
@@ -7,7 +7,7 @@ export interface ActivityDto {
   description: string;
   price: number;
   createdAt: string;
-  owner: UserDto;
+  owner: PublicUserDto;
 }
 
 export interface CreateActivityInput {
