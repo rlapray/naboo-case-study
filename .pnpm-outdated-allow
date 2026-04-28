@@ -1,10 +1,10 @@
 # Liste des paquets dont on accepte qu'ils restent en retard (un nom par ligne).
 # Dette technique reconnue (2026-04-28) — bcrypt et cookie retirés car mis à jour.
 # React 19.2.5 et @tabler/icons-react 3.x sont à jour (retirés de la whitelist).
-# Mantine v9, Next v16, zod v4, mongoose v9 : breaking changes — migrations PR futures.
+# zod v4 migré (2026-04-28) — retiré de la whitelist.
+# Mantine v9, Next v16, mongoose v9 : breaking changes — migrations PR futures.
 @mantine/core
 @mantine/form
 @mantine/hooks
 mongoose
 next
-zod
