@@ -10,7 +10,6 @@ const userDoc = {
   lastName: "Lovelace",
   email: "ada@example.com",
   password: "should-never-leak",
-  token: "should-never-leak",
 };
 
 describe("serialize", () => {
@@ -24,7 +23,6 @@ describe("serialize", () => {
     });
     expect(dto).not.toHaveProperty("email");
     expect(dto).not.toHaveProperty("password");
-    expect(dto).not.toHaveProperty("token");
   });
 
   it("toUserDto exposes email (used only on authenticated /api/me)", () => {

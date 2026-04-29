@@ -35,7 +35,6 @@ export const authService = {
       lastName: user.lastName,
     };
     const token = signToken(payload);
-    await userService.updateToken(user._id.toString(), token);
     return { access_token: token, user };
   },
 

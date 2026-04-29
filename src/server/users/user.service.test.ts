@@ -58,60 +58,10 @@ describe("userService", () => {
     expect(result).toBeNull();
   });
 
-  it("throws NotFoundError when getByEmail does not match", async () => {
-    await expect(userService.getByEmail("missing@test.com")).rejects.toBeInstanceOf(
-      NotFoundError,
-    );
-  });
-
-  it("getByEmail returns the user matching the provided email and ignores others", async () => {
-    const targetEmail = uniqueEmail();
-    const otherEmail = uniqueEmail();
-    await userService.createUser({
-      email: otherEmail,
-      password: "pw",
-      firstName: "Other",
-      lastName: "User",
-    });
-    const target = await userService.createUser({
-      email: targetEmail,
-      password: "pw",
-      firstName: "Target",
-      lastName: "User",
-    });
-
-    const found = await userService.getByEmail(targetEmail);
-
-    expect(found._id.toString()).toBe(target._id.toString());
-    expect(found.email).toBe(targetEmail);
-    expect(found.firstName).toBe("Target");
-  });
-
   it("throws NotFoundError when getById does not match", async () => {
     await expect(userService.getById("000000000000000000000000")).rejects.toBeInstanceOf(
       NotFoundError,
     );
-  });
-
-  it("updateToken persists the token on an existing user", async () => {
-    const created = await userService.createUser({
-      email: uniqueEmail(),
-      password: "pw",
-      firstName: "F",
-      lastName: "L",
-    });
-
-    const updated = await userService.updateToken(created._id.toString(), "new-token");
-
-    expect(updated.token).toBe("new-token");
-    const refetched = await userService.getById(created._id.toString());
-    expect(refetched.token).toBe("new-token");
-  });
-
-  it("updateToken throws NotFoundError when the user does not exist", async () => {
-    await expect(
-      userService.updateToken("000000000000000000000000", "t"),
-    ).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it("countDocuments reflects the number of created users", async () => {

@@ -9,7 +9,6 @@ export interface IUser {
   lastName: string;
   email: string;
   password: string;
-  token?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +22,6 @@ const userSchema = new Schema<IUser>(
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    token: { type: String },
   },
   { timestamps: true },
 );

@@ -12,13 +12,6 @@ export interface CreateUserInput {
 }
 
 export const userService = {
-  async getByEmail(email: string): Promise<UserDocument> {
-    const user = await UserModel.findOne({ email }).exec();
-    // Stryker disable next-line StringLiteral: human-readable error message, not part of API contract
-    if (!user) throw new NotFoundError("User not found");
-    return user;
-  },
-
   async findByEmail(email: string): Promise<UserDocument | null> {
     return UserModel.findOne({ email }).exec();
   },
@@ -33,14 +26,6 @@ export const userService = {
   async createUser(data: CreateUserInput): Promise<UserDocument> {
     const hashedPassword = await hash(data.password, 10);
     const user = new UserModel({ ...data, password: hashedPassword });
-    return user.save();
-  },
-
-  async updateToken(id: string, token: string): Promise<UserDocument> {
-    const user = await UserModel.findById(id).exec();
-    // Stryker disable next-line StringLiteral: human-readable error message, not part of API contract
-    if (!user) throw new NotFoundError("User not found");
-    user.token = token;
     return user.save();
   },
 
