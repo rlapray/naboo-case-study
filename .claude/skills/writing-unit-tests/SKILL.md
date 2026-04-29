@@ -1,13 +1,14 @@
 ---
 name: writing-unit-tests
 description: >-
-  Écrit, révise et débogue des tests unitaires et d'intégration serveur en
+  Écrit, révise et débogue des tests unitaires (fonctions pures, hooks via
+  `renderHook`) et d'intégration serveur (Next.js API routes + Mongoose) en
   appliquant les meilleures pratiques (FIRST, AAA, 4 piliers de Khorikov,
-  Testing Library guiding principles, DAMP > DRY). À utiliser quand
-  l'utilisateur demande « écris un test », « ajoute un test pour ce hook /
-  service », « pourquoi ce test flake », « refacto ces tests », ou édite un
-  fichier `*.test.ts(x)` hors du dossier `e2e/`. Ne pas utiliser pour les
-  tests end-to-end Playwright — déléguer au skill `e2e-test`.
+  DAMP > DRY). À utiliser quand l'utilisateur demande « écris un test »,
+  « ajoute un test pour ce hook / service / fonction », « pourquoi ce test
+  flake », « refacto ces tests », ou édite un fichier `*.test.ts` hors
+  `e2e/`. **Ne pas utiliser** pour : tests de composants React (déléguer au
+  skill `writing-rtl-tests`), tests end-to-end Playwright (skill `e2e-test`).
 ---
 
 # writing-unit-tests
@@ -26,7 +27,8 @@ Garantir que chaque test ajouté dans `src/**/*.test.ts(x)` :
 1. **Identifier le SUT (System Under Test) et sa frontière publique.** Liste ce qui est observable depuis l'extérieur : valeur de retour, état exposé, effet visible (DOM, DB, HTTP). Tout le reste = détail d'implémentation, ne pas tester.
 2. **Choisir le niveau de test** (voir `references/stack-cheatsheet.md`) :
    - Fonction pure / utilitaire → test unitaire pur.
-   - Hook React / composant → `@testing-library/react` (`renderHook`, `render`).
+   - Hook React → `@testing-library/react` (`renderHook`).
+   - **Composant React → skill `writing-rtl-tests`** (à invoquer, ne pas faire ici).
    - Service serveur, route API, modèle Mongoose → intégration avec `mongodb-memory-server` via les helpers `src/server/__tests__/helpers/`.
 3. **Structurer chaque `it` en AAA** : `// Arrange` (setup explicite), `// Act` (UNE action), `// Assert` (vérifie le comportement attendu).
 4. **Nommer en phrase métier.** `it("appends fetched items and advances the cursor")`, jamais `it("works")` ni `it("test 1")`. Forme : `it("<verb>s <object> when <condition>")`.

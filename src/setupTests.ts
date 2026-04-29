@@ -24,3 +24,16 @@ if (typeof window !== "undefined") {
     }),
   });
 }
+
+// Mantine ScrollArea (utilisée par Select, Autocomplete...) consomme ResizeObserver.
+// jsdom ne l'implémente pas — polyfill no-op suffisant pour rendre les composants.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  class ResizeObserverPolyfill {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  }
+  (
+    globalThis as unknown as { ResizeObserver: typeof ResizeObserverPolyfill }
+  ).ResizeObserver = ResizeObserverPolyfill;
+}

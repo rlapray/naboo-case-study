@@ -36,11 +36,19 @@ Avant d'écrire, valider que le parcours mérite un e2e. Charger `references/pri
 
 - Un e2e teste un **parcours utilisateur de bout en bout** (signin → action → résultat visible), **pas** une unité de code.
 - Cible : 5–10 % du suite de tests, **uniquement** les parcours business critiques.
-- **Pas de doublons** avec l'unitaire/intégration : edge cases et conditionnels restent en bas de la pyramide.
+- **Pas de doublons** avec les niveaux inférieurs : edge cases et conditionnels restent en bas de la pyramide.
 - **Black-box** : on teste ce que l'utilisateur voit, jamais l'implémentation (noms de fonctions, structure DOM interne, classes CSS).
 - **Données isolées et déterministes** : seed propre par run, reset entre tests, jamais de dépendance entre tests.
 
-Si le parcours demandé est mieux servi par un test unitaire ou d'intégration → **proposer ce niveau plutôt qu'un e2e** et arrêter.
+**Si le comportement est exprimable sans citer un parcours multi-pages, proposer un niveau inférieur plutôt qu'un e2e :**
+
+| Si le test… | Niveau cible | Skill |
+|---|---|---|
+| …vérifie une fonction `(input) → output` | Unit pur | `writing-unit-tests` |
+| …vérifie un hook React isolé | Unit hook (`renderHook`) | `writing-unit-tests` |
+| …vérifie un composant React (interaction clavier/souris, DOM) sans backend réel | Component RTL | `writing-rtl-tests` |
+| …vérifie un endpoint REST + DB | Intégration serveur | `writing-unit-tests` |
+| …vérifie un parcours multi-pages avec vrai backend | E2E | ce skill |
 
 ## Phase 2 — Cadrage du parcours
 

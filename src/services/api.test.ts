@@ -151,6 +151,81 @@ describe("services/api", () => {
     });
   });
 
+  describe("register", () => {
+    it("posts JSON to /api/auth/register and returns the parsed user", async () => {
+      const calls = mockFetchOnce({
+        body: { id: "u1", email: "a@b.co", firstName: "A", lastName: "B", role: "user" },
+      });
+
+      const result = await api.register({
+        email: "a@b.co",
+        password: "pw",
+        firstName: "A",
+        lastName: "B",
+      });
+
+      expect(calls[0].url).toBe("/api/auth/register");
+      expect(calls[0].init.method).toBe("POST");
+      expect((result as { id: string }).id).toBe("u1");
+    });
+  });
+
+  describe("getMe", () => {
+    it("requests /api/me and returns the current user", async () => {
+      const calls = mockFetchOnce({
+        body: { id: "u1", email: "a@b.co", firstName: "A", lastName: "B", role: "user" },
+      });
+
+      const result = await api.getMe();
+
+      expect(calls[0].url).toBe("/api/me");
+      expect(calls[0].init.method).toBeUndefined();
+      expect((result as { id: string }).id).toBe("u1");
+    });
+  });
+
+  describe("getLatestActivities", () => {
+    it("requests /api/activities/latest and returns the activity list", async () => {
+      const calls = mockFetchOnce({ body: [{ id: "a1" }, { id: "a2" }] });
+
+      const result = await api.getLatestActivities();
+
+      expect(calls[0].url).toBe("/api/activities/latest");
+      expect(result).toHaveLength(2);
+    });
+  });
+
+  describe("getCities", () => {
+    it("requests /api/cities and returns the city list", async () => {
+      const calls = mockFetchOnce({ body: ["Biarritz", "Paris"] });
+
+      const result = await api.getCities();
+
+      expect(calls[0].url).toBe("/api/cities");
+      expect(result).toEqual(["Biarritz", "Paris"]);
+    });
+  });
+
+  describe("createActivity", () => {
+    it("posts JSON activity input to /api/activities and returns the created activity", async () => {
+      const calls = mockFetchOnce({ body: { id: "a1", name: "Yoga" } });
+
+      const result = await api.createActivity({
+        name: "Yoga",
+        city: "Paris",
+        description: "d",
+        price: 10,
+      });
+
+      expect(calls[0].url).toBe("/api/activities");
+      expect(calls[0].init.method).toBe("POST");
+      expect(calls[0].init.body).toBe(
+        JSON.stringify({ name: "Yoga", city: "Paris", description: "d", price: 10 }),
+      );
+      expect((result as { id: string }).id).toBe("a1");
+    });
+  });
+
   describe("getActivities and getMyActivities", () => {
     it("getActivities returns the paginated response and forwards cursor/limit", async () => {
       const calls = mockFetchOnce({

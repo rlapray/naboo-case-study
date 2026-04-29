@@ -48,17 +48,27 @@ Tout test doit maximiser conjointement (pas un seul à la fois) :
 
 ## Test Pyramid (Fowler)
 
+Pyramide projet à 4 niveaux :
+
 ```
         /\
-       /e2\        ← peu, lents, fragiles → skill `e2e-test`
+       /e2\         ← parcours critiques (skill `e2e-test`)
       /----\
-     /  int \      ← serveur + DB en mémoire (ce skill couvre)
-    /--------\
-   /   unit   \    ← majorité ; rapides, ciblés (ce skill couvre)
-  /------------\
+     /comp.\        ← composant React : RTL + jsdom (skill `writing-rtl-tests`)
+    /------\
+   /serveur \       ← intégration serveur : mongodb-memory-server (ce skill)
+  /----------\
+ /    unit    \     ← fonctions pures + hooks `renderHook` (ce skill)
+/--------------\
 ```
 
-Pour ce projet : **majorité unit + une bonne couche d'intégration serveur** (`src/server/__tests__/`). Les e2e Playwright restent rares et couvrent les parcours critiques.
+**Ce skill couvre** : unit pur (fonctions, validators, mappers) + hooks isolés (`renderHook`) + intégration serveur (services + DB en mémoire + handlers via `callHandler`).
+
+**Composant React rendu** (`render` + `userEvent` + DOM) → **skill `writing-rtl-tests`** : asserts à la frontière HTTP, mocks `@/services/api`, helper projet `renderWithProviders`. Distinct de l'intégration serveur car ne touche jamais la DB et mocke les services au lieu de les exécuter.
+
+**E2E Playwright** → skill `e2e-test` : parcours multi-pages, vrai backend.
+
+Pour ce projet : majorité unit + bonne couche serveur ; component RTL pour combler le fossé entre hooks et e2e ; e2e rares et focalisés sur les parcours business critiques.
 
 ## Classical vs London school (Fowler, *Mocks Aren't Stubs*)
 

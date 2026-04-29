@@ -32,31 +32,8 @@ const { mockFoo } = vi.hoisted(() => ({ mockFoo: vi.fn() }));
 vi.mock("./foo", () => ({ foo: mockFoo }));
 ```
 
-## React Testing Library — guiding principles
+## Hooks React — `renderHook` + `act`
 
-> The more your tests resemble the way your software is used, the more confidence they can give you.
-
-### Priorité des queries
-1. `getByRole(role, { name })` — le défaut.
-2. `getByLabelText` — pour les inputs de formulaire.
-3. `getByPlaceholderText` — si pas de label (mauvais signe d'accessibilité).
-4. `getByText` — éléments non interactifs.
-5. `getByDisplayValue` — valeur courante d'un input.
-6. `getByAltText`, `getByTitle`.
-7. `getByTestId` — dernier recours, à justifier.
-
-Variantes : `query*` (retourne `null`), `find*` (async, retry).
-
-### `userEvent` (jamais `fireEvent`)
-```ts
-import userEvent from "@testing-library/user-event";
-
-const user = userEvent.setup();
-await user.click(screen.getByRole("button", { name: /se connecter/i }));
-await user.type(screen.getByLabelText(/email/i), "alice@example.com");
-```
-
-### Hooks — `renderHook` + `act`
 ```ts
 import { act, renderHook } from "@testing-library/react";
 
@@ -67,11 +44,18 @@ expect(result.current.value).toBe(42);
 ```
 Toute mutation d'état asynchrone doit être enveloppée dans `await act(async () => { ... })` — sinon warning React et test flaky.
 
-### Async UI — `findBy*` + web-first assertions
-```ts
-expect(await screen.findByRole("alert")).toHaveTextContent(/erreur/i);
-```
-`findBy*` retry jusqu'au timeout — ne pas mélanger avec `waitFor` ad-hoc.
+Pour wrapper un hook avec un contexte (ex. `useAuth` qui dépend de `AuthProvider`) : passer un `wrapper` à `renderHook`. Voir `src/contexts/authContext.test.tsx` pour le pattern projet.
+
+## Composants React → skill `writing-rtl-tests`
+
+Tout test rendant un composant React (`render`, `userEvent`, queries DOM) **n'est pas couvert par ce skill**. Déléguer à `writing-rtl-tests` qui détaille :
+
+- Priorité des queries (`getByRole` > … > `getByTestId`).
+- `userEvent` v14 (jamais `fireEvent`).
+- Mocks à la frontière HTTP uniquement (`@/services/api`, `next/router`, jamais `useForm` / `useAuth` / hooks internes).
+- Helper projet `src/test-utils/renderWithProviders.tsx`.
+- Pièges Mantine (portals, `Select`, `ResizeObserver`).
+- Async via `findBy*` (jamais `waitFor(() => getBy*())`).
 
 ## Tests serveur (Next.js API routes + Mongoose)
 
