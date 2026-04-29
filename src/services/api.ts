@@ -6,6 +6,15 @@ import type {
 import type { SignInInput, SignInResponse, SignUpInput } from "@/types/auth";
 import type { UserDto } from "@/types/user";
 
+function withQuery(path: string, params: Record<string, string | number | undefined>): string {
+  const search = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== "") search.set(k, String(v));
+  }
+  const qs = search.toString();
+  return qs ? `${path}?${qs}` : path;
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -71,12 +80,7 @@ export const api = {
   },
 
   getActivities(params: { cursor?: string; limit?: number } = {}): Promise<PaginatedActivitiesResponse> {
-    const search = new URLSearchParams();
-    if (params.cursor) search.set("cursor", params.cursor);
-    if (params.limit !== undefined) search.set("limit", String(params.limit));
-    const qs = search.toString();
-    const suffix = qs ? `?${qs}` : "";
-    return request<PaginatedActivitiesResponse>(`/api/activities${suffix}`);
+    return request<PaginatedActivitiesResponse>(withQuery("/api/activities", params));
   },
 
   getLatestActivities(): Promise<ActivityDto[]> {
@@ -84,12 +88,7 @@ export const api = {
   },
 
   getMyActivities(params: { cursor?: string; limit?: number } = {}): Promise<PaginatedActivitiesResponse> {
-    const search = new URLSearchParams();
-    if (params.cursor) search.set("cursor", params.cursor);
-    if (params.limit !== undefined) search.set("limit", String(params.limit));
-    const qs = search.toString();
-    const suffix = qs ? `?${qs}` : "";
-    return request<PaginatedActivitiesResponse>(`/api/activities/mine${suffix}`);
+    return request<PaginatedActivitiesResponse>(withQuery("/api/activities/mine", params));
   },
 
   getActivity(id: string): Promise<ActivityDto> {
@@ -103,12 +102,7 @@ export const api = {
     cursor?: string;
     limit?: number;
   }): Promise<PaginatedActivitiesResponse> {
-    const search = new URLSearchParams({ city: params.city });
-    if (params.activity) search.set("activity", params.activity);
-    if (params.price !== undefined) search.set("price", String(params.price));
-    if (params.cursor) search.set("cursor", params.cursor);
-    if (params.limit !== undefined) search.set("limit", String(params.limit));
-    return request<PaginatedActivitiesResponse>(`/api/activities/by-city?${search.toString()}`);
+    return request<PaginatedActivitiesResponse>(withQuery("/api/activities/by-city", params));
   },
 
   getCities(): Promise<string[]> {
