@@ -12,7 +12,7 @@ description: >-
   commit, rédige un rapport timestampé dans `docs/sessions/`. À utiliser quand
   l'utilisateur dit « implémente », « code cette feature », « passe à l'implem »,
   « /code », typiquement après /shaping-feature.
-argument-hint: "[draft path | brief inline | brief court | --worktree]"
+argument-hint: "[draft path | brief inline | brief court | --worktree | --no-mutation]"
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, TaskCreate, TaskList, TaskUpdate, TaskGet, TaskOutput, SendMessage
 ---
@@ -59,7 +59,22 @@ Sinon (voie B avec décisions ouvertes) : **propose** `/grill-me` à l'utilisate
 
 ## Phase 2 — Découpage TDD en tâches
 
-Produit un **plan markdown** dans `.claude/scratch/coding/<slug>/plan.md` ET un tracking live via `TaskCreate`.
+Produit un **plan markdown** ET un tracking live via `TaskCreate`.
+
+### Choix du chemin scratch (multi-incréments vs simple)
+
+Lis la section « Découpage » du draft (voie A) ou identifie les incréments dans le brief (voies B/C).
+
+- **Plusieurs incréments décrits** (la session ne couvre qu'un sous-ensemble — ex. incrément 1 sur 3) :
+  - Identifie l'identifiant de l'incrément traité (ex. `increment-1`, `increment-2`).
+  - Tous les artefacts scratch vivent sous `.claude/scratch/coding/<slug>/<increment-id>/` :
+    - `plan.md`
+    - `escalations/<task-id>.md`
+  - Cela isole le scratch de la session courante des futures sessions sur les autres incréments — pas de collision de nom de tâche, pas d'écrasement de plan.
+- **Un seul incrément** (feature mono-bloc, brief court voie C, ou les 3 incréments couverts en une seule session) :
+  - Scratch plat sous `.claude/scratch/coding/<slug>/`.
+
+Annonce le chemin scratch retenu à l'utilisateur dans le plan que tu présenteras en Phase 3 (« scratch sous `<slug>/increment-1/` car incrément 1 sur 3 »).
 
 Template du plan :
 
@@ -104,6 +119,26 @@ En cas de doute → bump à la classe supérieure. Le coût d'erreur est asymét
 
 ---
 
+### Création du rapport (squelette pré-rempli)
+
+À la fin de Phase 2, **crée immédiatement** le rapport `docs/sessions/<YYYY-MM-DD-HHMM>-<slug>.md` avec :
+
+- **Métadonnées** complètes sauf SHA (date, feature, bounded context, voie d'entrée, commit subject : `<à compléter>`)
+- **Cadrage d'origine** : copie intégrale du draft (voie A) ou du brief reçu en `$ARGUMENTS` (voies B/C)
+- **Plan initial** : copie du `.claude/scratch/coding/<slug>[/<increment-id>]/plan.md`
+- **Sections vides** avec balises de placeholder, à enrichir aux phases suivantes :
+  - `## Timeline d'exécution` — `<!-- append après chaque tâche -->`
+  - `## Tentatives & impasses` — `<!-- append à chaque escalation ou bascule -->`
+  - `## Décisions techniques tranchées` — `<!-- append à chaque décision en cours de route -->`
+  - `## Modèles & coûts` — `<!-- consolidé en Phase 6 -->`
+  - `## Quality gate` — `<!-- rempli en Phase 5 -->`
+  - `## Résumé` — `<!-- rédigé en Phase 6 -->`
+  - `## Liens` — `<!-- finalisé en Phase 6 -->`
+
+Le rapport est désormais **vivant**. À chaque phase suivante, tu y appendes au fur et à mesure (cf. Phases 4/5/6).
+
+---
+
 ## Phase 3 — Validation du plan par l'utilisateur
 
 Présente :
@@ -119,6 +154,13 @@ Présente :
 ## Phase 4 — Exécution TDD orchestrée
 
 Pour chaque tâche (ou groupe parallélisable), enchaîne **RED → GREEN → REFACTOR**. Briefing complet en prompt à chaque sous-agent (pas de mailbox, pas de polling). Détails du pattern : `references/multi-agent-orchestration.md`.
+
+**Rédaction au fil de l'eau du rapport** (section créée en Phase 2) :
+- Après chaque tâche terminée → append une ligne dans `## Timeline d'exécution` : `HH:MM — T<n> (<modèle>) : RED/GREEN/REFACTOR ok`
+- À chaque escalation (cf. plus bas) → append une entrée dans `## Tentatives & impasses` avec lien vers le fichier d'escalation
+- À chaque décision technique tranchée en cours de route (bascule Chicago↔London, choix de mock conservé/remplacé, renommage ubiquitous language) → append dans `## Décisions techniques tranchées`
+
+Ne diffère pas la rédaction : ce qui n'est pas écrit maintenant sera reconstitué de mémoire (mauvaise qualité) ou perdu (compactage du contexte).
 
 ### RED
 - Spawn un sous-agent **test-writer** avec `subagent_type: "general-purpose"`, le bon skill (`writing-unit-tests` | `writing-rtl-tests` | `e2e-test`), et le modèle adapté
@@ -151,7 +193,7 @@ Pour chaque tâche (ou groupe parallélisable), enchaîne **RED → GREEN → RE
 
 ### Escalation par sous-agent en difficulté
 Quand un sous-agent bute (signature ambiguë, comportement métier flou, conflit de mock, > 2 essais sans progrès) :
-1. Il écrit `.claude/scratch/coding/<slug>/escalations/<task-id>.md` avec : contexte, modifs faites, ce qu'il a essayé (succès/échec numéroté), 3 problèmes les plus chauds
+1. Il écrit `.claude/scratch/coding/<slug>[/<increment-id>]/escalations/<task-id>.md` avec : contexte, modifs faites, ce qu'il a essayé (succès/échec numéroté), 3 problèmes les plus chauds
 2. Il rend la main avec un résumé court dans son tool result : `ESCALATION : voir <chemin>`
 3. Tu lis l'escalation, présentes les options à l'utilisateur :
    - Relancer avec un modèle plus puissant ?
@@ -171,41 +213,72 @@ L'escalation file est **persistant** : reste après l'exécution, sert d'audit, 
 
 Jamais `--no-verify`. Si une commande échoue, corrige avant de continuer. **Pas de commit à cette phase** : le commit final inclura aussi le rapport et la suppression du draft (Phase 6).
 
+**Append au rapport** : remplis la section `## Quality gate` avec la sortie résumée des deux commandes (statut ok/ko, nb de tests, durée).
+
 ---
 
-## Phase 6 — Rapport de session + commit final
+## Phase 5.5 — Mutation testing (optionnel, background)
 
-Rédige un rapport timestampé dans `docs/sessions/<YYYY-MM-DD-HHMM>-<feature-slug>.md`. Crée le dossier `docs/sessions/` s'il n'existe pas.
+**Déclenchement** : **par défaut activé**. Skippé uniquement si :
+- Flag `--no-mutation` présent dans `$ARGUMENTS` (opt-out explicite, à justifier dans le rapport)
+- **OU** la diff ne touche aucun fichier dans `src/server/**`, `src/hooks/**`, `src/utils/**`, `src/pages/api/**` (scope Stryker du projet — RTL pur, e2e, types ou pages SSR n'ont rien à muter)
 
-Template complet et exemples : `references/session-report-template.md`.
+La qualité des TU est non négociable : sur du code testé unitairement, le mutation testing est le seul moyen de mesurer si les assertions sont réelles ou cosmétiques. On l'exécute systématiquement sur les couches où il est pertinent.
 
-**Ordre des sections du rapport** :
-1. Métadonnées (date, feature, contexte, commit final)
-2. **Cadrage d'origine** (intégré tel quel, archive complète) :
-   - Voie A : copie intégrale du draft `docs/features/drafts/<slug>.md` (avec tous ses détails — Job, Fit, Vocabulaire, UX, Découpage, décisions tranchées par grill-me)
-   - Voie B : copie intégrale du brief inline reçu en `$ARGUMENTS`
-   - Voie C : copie de la phrase courte reçue en `$ARGUMENTS`
-3. Sections d'exécution (résumé, plan initial, timeline, tentatives & impasses, décisions techniques, modèles & coûts, quality gate, liens)
+**Pourquoi à ce moment précis** :
+- Le quality gate vient de passer → code stable, pas d'éditions concurrentes possibles
+- Stryker mute les sources et relance les tests : **toute édition concurrente corromprait l'état** → c'est pour ça qu'on ne le lance jamais par tâche en Phase 4
+- Tourne en background pendant que tu finalises le rapport (Phase 6) : zéro temps mort
 
-**Sources mobilisées** :
-- `$ARGUMENTS` (voies B/C) ou `docs/features/drafts/<slug>.md` (voie A) → section « Cadrage d'origine »
-- `.claude/scratch/coding/<slug>/plan.md` → section « Plan initial »
-- `TaskList` historisé → section « Timeline »
-- Tool results des sous-agents → section « Tentatives & impasses »
-- `.claude/scratch/coding/<slug>/escalations/*.md` → section « Tentatives & impasses »
-- `git log -1 --format=%H%n%s` du commit final → métadonnées (SHA + subject)
-- Sortie de `pnpm verify` et `pnpm verify:test` finale → section « Quality gate »
+**Procédure** :
+1. Récupère la liste des fichiers modifiés dans le scope : `git diff --name-only HEAD -- 'src/server/**' 'src/hooks/**' 'src/utils/**' 'src/pages/api/**'`
+2. Si liste vide → skip
+3. Spawn un sous-agent **mutation-runner** en `run_in_background: true` :
+   - `subagent_type: "general-purpose"`
+   - skill : `mutation-testing`
+   - briefing : liste des fichiers cibles, chemin du rapport `docs/sessions/<ts>-<slug>.md`, instruction d'appendre une section `## Mutation testing` à la fin (score, table mutants survivants classés par criticité)
+4. **Verrou** : aucune édition de `src/` tant qu'il tourne (uniquement le rapport et le draft à supprimer)
+5. Tu enchaînes la Phase 6 (finalisation rapport)
+6. **Avant le commit final** : attends le tool result du mutation-runner
 
-**La valeur du rapport** : le cadrage d'origine archivé rend le rapport auto-contenu. La section « Tentatives & impasses » archive ce qui a été essayé et n'a pas marché. Pas de liste exhaustive de fichiers (le commit fait foi).
+**Décision post-run** :
+- Score acceptable / pas de mutant critique → commit direct (rapport inclut la section mutation)
+- Mutants critiques survivants → **propose** à l'utilisateur une mini-boucle TDD ciblée (relance Phase 4 sur la tâche concernée avec briefing « tuer le mutant `<id>` »). Tu ne la lances pas auto. Si l'utilisateur décline, commit avec la section mutation telle quelle (transparent dans le rapport).
 
-**Cleanup post-archive** (voie A uniquement) : une fois le rapport écrit, **supprime** le draft `docs/features/drafts/<slug>.md` (`git rm`). Son contenu est désormais archivé dans le rapport ; le garder créerait deux sources de vérité divergentes. Pour les voies B/C, il n'y a pas de fichier draft à supprimer.
+**Garde-fous** :
+- Jamais en parallèle de Phase 4 (corruption d'état)
+- Tourne en background pendant Phase 6 → coût temps réel ≈ 0 (overlap avec la rédaction du rapport)
+- Si Stryker échoue (config cassée, OOM) → log dans le rapport, commit quand même, ne bloque pas le flow
+- `--no-mutation` reste disponible pour les hotfixes urgents ou les features 100% UI ; toujours justifier le skip dans le rapport
 
-### Commit final (un seul commit englobant)
+---
 
-Une fois le rapport écrit et le draft supprimé (le cas échéant), invoque `/commit`. **Le commit final inclut tout en une seule fois** :
+## Phase 6 — Finalisation du rapport + commit final
+
+À ce stade, le rapport est déjà largement rédigé (créé en Phase 2, enrichi au fil de l'eau en Phases 4/5). Tu **finalises** uniquement les sections qui demandent une vue d'ensemble ; tu ne re-rédiges rien.
+
+**Sections à finaliser** (par `Edit` ciblé, pas de réécriture from-scratch) :
+- `## Résumé` : 3-5 lignes synthétiques — ce qui a été livré, périmètre effectif, résultat fonctionnel
+- `## Modèles & coûts` : table consolidée des tâches × modèle × escalations (depuis le `TaskList` final + les appends de Phase 4)
+- `## Liens` : commit subject prévu (`feat(<scope>): <description>`), pointeurs vers escalations conservées, mention du draft supprimé (voie A)
+- **Relecture rapide de cohérence** : la timeline correspond-elle bien à la table coûts ? Les décisions techniques appendées en cours sont-elles toutes consignées ?
+
+**Annotation du draft** (voie A uniquement) : on **ne supprime PAS** le draft. On l'annote en tête avec le statut courant.
+
+- Si **tous les incréments** décrits dans la section « Découpage » du draft ont été livrés cette session → édite le draft pour passer son statut à `Statut : Livré (cf. docs/sessions/<rapport>.md)`. L'utilisateur le supprimera lui-même quand il considère le draft comme consommé.
+- Si **un sous-ensemble seulement** des incréments a été livré (ex. incrément 1 sur 3) → édite le draft pour ajouter une note de statut en tête : statut courant + lien vers le rapport + liste explicite des incréments restants. Le draft reste la source canonique pour les futures sessions `/coding` sur la suite.
+- **Jamais de `git rm` automatique** : ce serait perdre la source canonique pour les incréments suivants ou priver l'utilisateur de la décision finale. La suppression définitive du draft est une décision utilisateur.
+
+Pas de SHA dans la métadonnée du rapport (référence circulaire impossible) : la métadonnée mentionne juste le **subject** du commit final attendu. Le lecteur retrouve le SHA via `git log -- docs/sessions/<rapport>.md`.
+
+### Commit final (un seul commit englobant, message en anglais)
+
+Une fois le rapport écrit et le draft annoté, invoque `/commit`. **Le commit final inclut tout en une seule fois** :
 - Le code de la feature (déjà staged ou prêt à être staged)
 - Le rapport `docs/sessions/<YYYY-MM-DD-HHMM>-<slug>.md`
-- La suppression de `docs/features/drafts/<slug>.md` (voie A)
+- L'annotation du draft `docs/features/drafts/<slug>.md` (voie A)
+
+**Le message du commit final (sujet ET body) est en anglais.** Conventional Commits style. Le sujet est court ; le body explique le périmètre livré, les décisions notables, et pointe vers le rapport. Cette règle s'applique à tous les commits du projet (cf. mémoire `feedback_commit_test_workflow.md`).
 
 Pas de SHA dans la métadonnée du rapport (référence circulaire impossible) : la métadonnée mentionne juste le **subject** du commit final attendu (`feat(<scope>): <description>`). Le lecteur retrouve le SHA via `git log -- docs/sessions/<rapport>.md`.
 

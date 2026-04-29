@@ -21,7 +21,7 @@ Contexte minimal :
 - Conventions : <pyramide tests, ubiquitous language pour les noms>
 
 Si tu bloques :
-- Écris `.claude/scratch/coding/<slug>/escalations/<T-id>.md` avec : contexte, modifs faites, ce qui a été essayé (succès/échec numéroté), 3 problèmes les plus chauds
+- Écris `.claude/scratch/coding/<slug>[/<increment-id>]/escalations/<T-id>.md` avec : contexte, modifs faites, ce qui a été essayé (succès/échec numéroté), 3 problèmes les plus chauds (le sous-dossier `<increment-id>/` n'est inclus que si le draft décrit plusieurs incréments — l'agent principal te l'indique dans le briefing)
 - Rends ESCALATION : voir <chemin> dans ton tool result
 - N'insiste pas après 2 essais infructueux
 

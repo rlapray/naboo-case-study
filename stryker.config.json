@@ -9,6 +9,7 @@
     "src/server/**/*.ts",
     "src/hooks/**/*.ts",
     "src/utils/**/*.ts",
+    "src/pages/api/**/*.ts",
     "!src/**/*.test.{ts,tsx}",
     "!src/**/*.stories.tsx",
     "!src/**/__tests__/**",

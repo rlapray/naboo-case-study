@@ -11,6 +11,25 @@ Exemples :
 - `docs/sessions/2026-04-29-1430-healthcheck-endpoint.md`
 - `docs/sessions/2026-04-29-1605-panier-utilisateur.md`
 
+## Ordre de remplissage progressif (rapport vivant)
+
+Le rapport est créé en **Phase 2** et enrichi au fil de l'eau. Chaque section a une phase de remplissage attitrée :
+
+| Section | Phase qui remplit | Mode |
+|---|---|---|
+| Métadonnées (sauf SHA) | Phase 2 | Création |
+| Cadrage d'origine | Phase 2 | Création (copie intégrale) |
+| Plan initial | Phase 2 | Création (copie de `plan.md`) |
+| Timeline d'exécution | Phase 4 | Append après chaque tâche |
+| Tentatives & impasses | Phase 4 | Append à chaque escalation / bascule |
+| Décisions techniques tranchées | Phase 4 | Append à chaque décision |
+| Quality gate | Phase 5 | Append (sortie résumée) |
+| Résumé | Phase 6 | Edit (3-5 lignes) |
+| Modèles & coûts | Phase 6 | Edit (table consolidée) |
+| Liens | Phase 6 | Edit (commit subject prévu) |
+
+**Règle clé** : ne jamais différer ce qui peut être écrit maintenant. Une décision technique non consignée au moment où elle est prise sera reconstituée de mémoire (faible qualité) ou perdue (compactage).
+
 ## Mapping sources → sections
 
 | Section du rapport | Source |
@@ -18,9 +37,9 @@ Exemples :
 | Métadonnées (date, feature, contexte) | Brief de Phase 0 + bounded context déduit |
 | **Cadrage d'origine** | Voie A : copie intégrale de `docs/features/drafts/<slug>.md` ; Voie B/C : copie intégrale du contenu reçu en `$ARGUMENTS` |
 | Résumé | Synthèse de ce qui a été livré (toi-même, en 3-5 lignes) |
-| Plan initial | Copie de `.claude/scratch/coding/<slug>/plan.md` |
+| Plan initial | Copie de `.claude/scratch/coding/<slug>[/<increment-id>]/plan.md` |
 | Timeline d'exécution | Historique `TaskList` / `TaskUpdate` (status changes + horodatage) |
-| Tentatives & impasses | Tool results des sous-agents (champ `Notes`) + fichiers `.claude/scratch/coding/<slug>/escalations/*.md` |
+| Tentatives & impasses | Tool results des sous-agents (champ `Notes`) + fichiers `.claude/scratch/coding/<slug>[/<increment-id>]/escalations/*.md` |
 | Décisions techniques tranchées | À synthétiser depuis le brief, le grill éventuel, les choix de refactor |
 | Modèles & coûts | TaskList enrichi avec le modèle utilisé par tâche + escalations subies |
 | Quality gate | Sortie de `pnpm verify` et `pnpm verify:test` finale |
@@ -30,7 +49,10 @@ Exemples :
 
 Le rapport est l'**archive consolidée et auto-contenue** d'une session : on doit pouvoir le rouvrir 6 mois plus tard et retrouver l'intention initiale **et** l'exécution sans dépendance externe.
 
-**Voie A** : le draft `docs/features/drafts/<slug>.md` est intégré dans la section « Cadrage d'origine » du rapport, **puis supprimé du repo** dans le commit final. Une seule source de vérité (le rapport), pas deux qui pourraient diverger.
+**Voie A** : le draft `docs/features/drafts/<slug>.md` est intégré dans la section « Cadrage d'origine » du rapport. Le draft **n'est jamais supprimé automatiquement** — il est annoté en tête avec son statut courant :
+- Statut « Livré » + lien vers le rapport si **tous** les incréments décrits dans le draft ont été couverts cette session.
+- Statut + liste des incréments restants si seul un sous-ensemble a été livré (le draft reste alors la source canonique pour les futures sessions `/coding`).
+La décision de supprimer définitivement le draft revient à l'utilisateur.
 
 **Voies B et C** : l'input n'a pas de fichier source — il vit uniquement dans la conversation. L'archiver dans le rapport est encore plus important : sans ça, on ne saura plus jamais ce qui a été demandé.
 
@@ -67,7 +89,7 @@ Si le plan est long, garde la structure brute (T1, T2, ...) et coupe les détail
 - HH:MM — T2 (sonnet) : RED écrit, GREEN initial échoue, retry → ok
 - HH:MM — T3 et T4 (sonnet, parallèle) : succès simultanés à HH:MM
 - HH:MM — Quality gate : `pnpm verify` ok, `pnpm verify:test` ok
-- HH:MM — Rapport rédigé, draft supprimé, commit final
+- HH:MM — Rapport rédigé, draft annoté avec statut, commit final
 
 ## Tentatives & impasses (mise en avant)
 > Ce qui a été essayé mais n'a pas fonctionné, et ce qui a été retenu à la place.
@@ -104,10 +126,10 @@ La section reste, même vide, pour souligner qu'elle a été pensée.)
 - Hooks pré-commit : ok (jamais `--no-verify`)
 
 ## Liens
-- Plan initial : `.claude/scratch/coding/<slug>/plan.md` (scratch éphémère, peut être nettoyé après commit)
-- Escalations conservées : `.claude/scratch/coding/<slug>/escalations/T2.md` (si pertinent à conserver)
+- Plan initial : `.claude/scratch/coding/<slug>[/<increment-id>]/plan.md` (scratch éphémère, peut être nettoyé après commit)
+- Escalations conservées : `.claude/scratch/coding/<slug>[/<increment-id>]/escalations/T2.md` (si pertinent à conserver)
 - Commit subject : `feat(<scope>): <description>` (SHA via `git log -- <ce-fichier>`)
-- Draft d'origine (voie A) : supprimé du repo après archive dans ce rapport (`git rm docs/features/drafts/<slug>.md`)
+- Draft d'origine (voie A) : annoté en tête avec son statut (livré / incréments restants), conservé dans le repo. Suppression manuelle à la discrétion de l'utilisateur.
 - PR (si créée) : <lien manuel — pas créée par /coding>
 ```
 

@@ -46,3 +46,6 @@ next-env.d.ts
 # mutation testing
 /reports/
 /.stryker-tmp/
+
+
+.claude/scratch/
