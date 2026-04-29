@@ -16,6 +16,7 @@ Exemples :
 | Section du rapport | Source |
 |---|---|
 | Métadonnées (date, feature, contexte) | Brief de Phase 0 + bounded context déduit |
+| **Cadrage d'origine** | Voie A : copie intégrale de `docs/features/drafts/<slug>.md` ; Voie B/C : copie intégrale du contenu reçu en `$ARGUMENTS` |
 | Résumé | Synthèse de ce qui a été livré (toi-même, en 3-5 lignes) |
 | Plan initial | Copie de `.claude/scratch/coding/<slug>/plan.md` |
 | Timeline d'exécution | Historique `TaskList` / `TaskUpdate` (status changes + horodatage) |
@@ -24,6 +25,12 @@ Exemples :
 | Modèles & coûts | TaskList enrichi avec le modèle utilisé par tâche + escalations subies |
 | Quality gate | Sortie de `pnpm verify` et `pnpm verify:test` finale |
 | Liens | Plan initial, escalations conservées, SHA commit, PR (si applicable) |
+
+## Pourquoi archiver le cadrage d'origine
+
+Le draft `docs/features/drafts/<slug>.md` peut être renommé, déplacé ou supprimé après l'implémentation (cycle de vie indépendant). Le rapport est l'**archive consolidée** d'une session : on doit pouvoir le rouvrir 6 mois plus tard et retrouver l'intention initiale **et** l'exécution sans dépendance externe.
+
+Pour les voies B et C, l'input n'a pas de fichier source — il vit uniquement dans la conversation. L'archiver dans le rapport est encore plus important : sans ça, on ne saura plus jamais ce qui a été demandé.
 
 ## Template à remplir
 
@@ -34,6 +41,16 @@ Exemples :
 **Feature** : <nom>
 **Bounded context** : Catalogue | Identité | Administration
 **Commit final** : <SHA short> — <subject>
+**Voie d'entrée** : A (draft consolidé) | B (brief inline) | C (brief court)
+
+## Cadrage d'origine
+
+> Source : `docs/features/drafts/<slug>.md` (voie A) | brief inline reçu en `$ARGUMENTS` (voie B) | brief court reçu en `$ARGUMENTS` (voie C)
+
+<COPIE INTÉGRALE du draft ou du brief reçu en input, sans aucune modification ni résumé.
+Pour la voie A : copie le contenu complet de `docs/features/drafts/<slug>.md` (titre, Job, Fit,
+Vocabulaire, UX, Découpage, décisions tranchées par grill-me, etc.).
+Pour les voies B/C : reproduis le texte reçu tel quel.>
 
 ## Résumé
 <3-5 lignes : ce qui a été livré, le périmètre effectif, le résultat fonctionnel.

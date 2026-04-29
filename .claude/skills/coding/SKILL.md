@@ -180,7 +180,16 @@ Rédige un rapport timestampé dans `docs/sessions/<YYYY-MM-DD-HHMM>-<feature-sl
 
 Template complet et exemples : `references/session-report-template.md`.
 
+**Ordre des sections du rapport** :
+1. Métadonnées (date, feature, contexte, commit final)
+2. **Cadrage d'origine** (intégré tel quel, archive complète) :
+   - Voie A : copie intégrale du draft `docs/features/drafts/<slug>.md` (avec tous ses détails — Job, Fit, Vocabulaire, UX, Découpage, décisions tranchées par grill-me)
+   - Voie B : copie intégrale du brief inline reçu en `$ARGUMENTS`
+   - Voie C : copie de la phrase courte reçue en `$ARGUMENTS`
+3. Sections d'exécution (résumé, plan initial, timeline, tentatives & impasses, décisions techniques, modèles & coûts, quality gate, liens)
+
 **Sources mobilisées** :
+- `$ARGUMENTS` (voies B/C) ou `docs/features/drafts/<slug>.md` (voie A) → section « Cadrage d'origine »
 - `.claude/scratch/coding/<slug>/plan.md` → section « Plan initial »
 - `TaskList` historisé → section « Timeline »
 - Tool results des sous-agents → section « Tentatives & impasses »
@@ -188,7 +197,7 @@ Template complet et exemples : `references/session-report-template.md`.
 - `git log -1 --format=%H%n%s` du commit final → métadonnées (SHA + subject)
 - Sortie de `pnpm verify` et `pnpm verify:test` finale → section « Quality gate »
 
-**La valeur du rapport est dans la section « Tentatives & impasses »** : ce qui a été essayé et n'a pas marché, et ce qui a été retenu à la place. Pas de liste exhaustive de fichiers (le commit fait foi).
+**La valeur du rapport** : le cadrage d'origine archivé garantit qu'on retrouve l'intention initiale même si le draft est ensuite renommé/supprimé. La section « Tentatives & impasses » archive ce qui a été essayé et n'a pas marché. Pas de liste exhaustive de fichiers (le commit fait foi).
 
 ---
 
