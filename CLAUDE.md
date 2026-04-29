@@ -1,5 +1,9 @@
 - Prépend tes appels bash avec rtk (Rust Token Killer) pour limiter le cout en token.
 - Utilise Context7 pour la documentation, migration, etc...
+- Pour améliorer tes plans
+  - utilise la méthode du skill /grill-me, utilise docs/UBIQUITOUS_LANGUAGE.md
+  - utilise les features maps dans docs quand nécessaire
+
 
 ## Routine qualité code
 
