@@ -36,5 +36,5 @@
     "fileName": "reports/mutation/mutation.html"
   },
   "timeoutMS": 10000,
-  "concurrency": 4
+  "concurrency": 2
 }
