@@ -1,26 +1,14 @@
 // @vitest-environment node
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import loginHandler from "@/pages/api/auth/login";
 import registerHandler from "@/pages/api/auth/register";
 import meHandler from "@/pages/api/me";
 import { callHandler, extractCookie } from "./helpers/mock-http";
-import { clearTestDb, startTestDb, stopTestDb } from "./helpers/test-db";
+import { useServerTestEnv } from "./helpers/setup";
 
 describe("auth e2e (register → login → me)", () => {
-  beforeAll(async () => {
-    process.env.JWT_SECRET = "test_secret";
-    process.env.JWT_EXPIRATION_TIME = "3600";
-    await startTestDb();
-  });
-
-  afterAll(async () => {
-    await stopTestDb();
-  });
-
-  beforeEach(async () => {
-    await clearTestDb();
-  });
+  useServerTestEnv({ rateLimit: false });
 
   it("registers, logs in and returns the current user via /api/me", async () => {
     const email = `${randomUUID()}@test.com`;

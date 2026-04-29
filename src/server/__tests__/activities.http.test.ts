@@ -1,42 +1,13 @@
 // @vitest-environment node
-import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import activitiesHandler from "@/pages/api/activities";
 import activityByIdHandler from "@/pages/api/activities/[id]";
-import loginHandler from "@/pages/api/auth/login";
-import registerHandler from "@/pages/api/auth/register";
-import { __resetRateLimitForTests } from "@/server/rate-limit";
-import { callHandler, extractCookie } from "./helpers/mock-http";
-import { clearTestDb, startTestDb, stopTestDb } from "./helpers/test-db";
-
-async function authenticate(): Promise<string> {
-  const email = `u-${randomUUID()}@example.com`;
-  await callHandler(registerHandler, {
-    method: "POST",
-    body: { email, password: "pw1", firstName: "F", lastName: "L" },
-  });
-  const login = await callHandler(loginHandler, {
-    method: "POST",
-    body: { email, password: "pw1" },
-  });
-  return extractCookie(login.headers, "jwt")!;
-}
+import { authenticate } from "./helpers/auth";
+import { callHandler } from "./helpers/mock-http";
+import { useServerTestEnv } from "./helpers/setup";
 
 describe("activities HTTP handlers", () => {
-  beforeAll(async () => {
-    process.env.JWT_SECRET = "test_secret";
-    process.env.JWT_EXPIRATION_TIME = "3600";
-    await startTestDb();
-  });
-
-  afterAll(async () => {
-    await stopTestDb();
-  });
-
-  beforeEach(async () => {
-    await clearTestDb();
-    __resetRateLimitForTests();
-  });
+  useServerTestEnv();
 
   describe("GET /api/activities/[id]", () => {
     it("returns 200 with a DTO that excludes the owner email", async () => {

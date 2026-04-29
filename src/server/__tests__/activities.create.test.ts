@@ -1,36 +1,12 @@
 // @vitest-environment node
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import activitiesHandler from "@/pages/api/activities";
-import loginHandler from "@/pages/api/auth/login";
-import registerHandler from "@/pages/api/auth/register";
-import { __resetRateLimitForTests } from "@/server/rate-limit";
-import { callHandler, extractCookie } from "./helpers/mock-http";
-import { clearTestDb, startTestDb, stopTestDb } from "./helpers/test-db";
-
-async function authenticate(): Promise<string> {
-  const email = `u-${Date.now()}@example.com`;
-  await callHandler(registerHandler, {
-    method: "POST",
-    body: { email, password: "pw1", firstName: "F", lastName: "L" },
-  });
-  const login = await callHandler(loginHandler, {
-    method: "POST",
-    body: { email, password: "pw1" },
-  });
-  return extractCookie(login.headers, "jwt")!;
-}
+import { authenticate } from "./helpers/auth";
+import { callHandler } from "./helpers/mock-http";
+import { useServerTestEnv } from "./helpers/setup";
 
 describe("POST /api/activities — input length limits", () => {
-  beforeAll(async () => {
-    await startTestDb();
-  });
-  afterAll(async () => {
-    await stopTestDb();
-  });
-  beforeEach(async () => {
-    await clearTestDb();
-    __resetRateLimitForTests();
-  });
+  useServerTestEnv();
 
   it("rejects oversize description with 400 (no DB pollution)", async () => {
     const jwt = await authenticate();

@@ -1,29 +1,16 @@
 // @vitest-environment node
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import loginHandler from "@/pages/api/auth/login";
 import logoutHandler from "@/pages/api/auth/logout";
 import registerHandler from "@/pages/api/auth/register";
 import meHandler from "@/pages/api/me";
-import { __resetRateLimitForTests } from "@/server/rate-limit";
 import { callHandler, extractCookie } from "./helpers/mock-http";
-import { clearTestDb, startTestDb, stopTestDb } from "./helpers/test-db";
+import { useServerTestEnv } from "./helpers/setup";
+import { clearTestDb } from "./helpers/test-db";
 
 describe("auth — error paths", () => {
-  beforeAll(async () => {
-    process.env.JWT_SECRET = "test_secret";
-    process.env.JWT_EXPIRATION_TIME = "3600";
-    await startTestDb();
-  });
-
-  afterAll(async () => {
-    await stopTestDb();
-  });
-
-  beforeEach(async () => {
-    await clearTestDb();
-    __resetRateLimitForTests();
-  });
+  useServerTestEnv();
 
   describe("POST /api/auth/login — mauvais credentials (anti-énumération)", () => {
     it("returns 400 with identical message for an unknown email", async () => {

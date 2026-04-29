@@ -1,26 +1,12 @@
 // @vitest-environment node
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import loginHandler from "@/pages/api/auth/login";
 import registerHandler from "@/pages/api/auth/register";
-import { __resetRateLimitForTests } from "@/server/rate-limit";
 import { callHandler } from "./helpers/mock-http";
-import { clearTestDb, startTestDb, stopTestDb } from "./helpers/test-db";
+import { useServerTestEnv } from "./helpers/setup";
 
 describe("auth routes — rate limiting", () => {
-  beforeAll(async () => {
-    process.env.JWT_SECRET = "test_secret";
-    process.env.JWT_EXPIRATION_TIME = "3600";
-    await startTestDb();
-  });
-
-  afterAll(async () => {
-    await stopTestDb();
-  });
-
-  beforeEach(async () => {
-    await clearTestDb();
-    __resetRateLimitForTests();
-  });
+  useServerTestEnv();
 
   it("returns 429 with Retry-After once the login burst exceeds 10 attempts", async () => {
     const attempt = () =>

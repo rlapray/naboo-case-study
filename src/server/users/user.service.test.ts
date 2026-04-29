@@ -1,21 +1,11 @@
 // @vitest-environment node
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { clearTestDb, startTestDb, stopTestDb } from "../__tests__/helpers/test-db";
+import { describe, expect, it } from "vitest";
+import { useServerTestEnv } from "../__tests__/helpers/setup";
 import { userService } from "./user.service";
 
 describe("userService", () => {
-  beforeAll(async () => {
-    await startTestDb();
-  });
-
-  afterAll(async () => {
-    await stopTestDb();
-  });
-
-  beforeEach(async () => {
-    await clearTestDb();
-  });
+  useServerTestEnv({ rateLimit: false, jwt: false });
 
   it("creates a user and fetches it back by id", async () => {
     const email = `${randomUUID()}@test.com`;

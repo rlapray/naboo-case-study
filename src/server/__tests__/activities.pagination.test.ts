@@ -1,34 +1,12 @@
 // @vitest-environment node
-import { Types } from "mongoose";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { ActivityModel } from "@/server/activities/activity.schema";
 import { activityService } from "@/server/activities/activity.service";
-import { clearTestDb, startTestDb, stopTestDb } from "./helpers/test-db";
-
-const ownerId = new Types.ObjectId();
-
-function makeActivities(count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    name: `Activity ${i + 1}`,
-    city: "TestCity",
-    description: "desc",
-    price: 10,
-    owner: ownerId,
-  }));
-}
+import { makeActivities, ownerId } from "./helpers/factories";
+import { useServerTestEnv } from "./helpers/setup";
 
 describe("activityService — cursor-based pagination", () => {
-  beforeAll(async () => {
-    await startTestDb();
-  });
-
-  afterAll(async () => {
-    await stopTestDb();
-  });
-
-  beforeEach(async () => {
-    await clearTestDb();
-  });
+  useServerTestEnv({ rateLimit: false, jwt: false });
 
   describe("findAll", () => {
     it("returns 20 items on first page and 10 on second page when 30 exist", async () => {
@@ -104,15 +82,9 @@ describe("activityService — cursor-based pagination", () => {
 
     it("cursor pagination respects active filters", async () => {
       await ActivityModel.insertMany([
-        ...Array.from({ length: 25 }, () => ({
-          name: "Yoga",
-          city: "TestCity",
-          description: "desc",
-          price: 10,
-          owner: ownerId,
-        })),
+        ...makeActivities(25, { name: "Yoga" }),
         // These should be excluded by the "yoga" activity filter
-        { name: "Pilates", city: "TestCity", description: "desc", price: 10, owner: ownerId },
+        ...makeActivities(1, { name: "Pilates" }),
       ]);
 
       const page1 = await activityService.findByCity("TestCity", "yoga");
