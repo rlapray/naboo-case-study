@@ -51,6 +51,7 @@ describe("auth — error paths", () => {
         body: { email, password: "other", firstName: "C", lastName: "D" },
       });
       expect(second.status).toBe(409);
+      expect((second.body as { error: string }).error).toBe("Email already in use");
     });
   });
 
