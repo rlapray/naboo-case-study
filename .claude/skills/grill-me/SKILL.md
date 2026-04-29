@@ -60,9 +60,11 @@ Si tu hésites, demande : « On continue, ou tu as assez d'éléments ? »
 
 ## En fin de session
 
-Propose à l'utilisateur de capturer les décisions tranchées :
-- Dans un ADR (via `/writing-adrs`) si la décision est architecturale
-- Dans le fichier de plan en cours s'il y en a un
-- Sinon, dans un résumé inline
+Propose à l'utilisateur de capturer les décisions tranchées, dans cet ordre de préférence :
+
+1. **Dans le draft `docs/features/drafts/<slug>.md`** s'il existe (typiquement quand `/grill-me` est invoqué depuis `/shaping-feature`). Remplir la section « Décisions tranchées » avec le tableau `Q# | Sujet | Choix | Justification | Alternatives évaluées` — les alternatives écartées vont sous `<details>` HTML.
+2. **Dans un ADR via `/writing-adrs`** si une décision est architecturale et survivra à la feature courante (modèle de données, pattern de pagination, couplage entre Bounded Contexts, contrat d'API durable). Le draft de feature pointera vers l'ADR.
+3. **Dans le fichier de plan** en cours s'il y en a un.
+4. **Sinon, résumé inline** dans la conversation.
 
 Sans ça, les arbitrages se perdent dans le chat.
