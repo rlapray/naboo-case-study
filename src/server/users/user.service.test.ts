@@ -64,6 +64,29 @@ describe("userService", () => {
     );
   });
 
+  it("getByEmail returns the user matching the provided email and ignores others", async () => {
+    const targetEmail = uniqueEmail();
+    const otherEmail = uniqueEmail();
+    await userService.createUser({
+      email: otherEmail,
+      password: "pw",
+      firstName: "Other",
+      lastName: "User",
+    });
+    const target = await userService.createUser({
+      email: targetEmail,
+      password: "pw",
+      firstName: "Target",
+      lastName: "User",
+    });
+
+    const found = await userService.getByEmail(targetEmail);
+
+    expect(found._id.toString()).toBe(target._id.toString());
+    expect(found.email).toBe(targetEmail);
+    expect(found.firstName).toBe("Target");
+  });
+
   it("throws NotFoundError when getById does not match", async () => {
     await expect(userService.getById("000000000000000000000000")).rejects.toBeInstanceOf(
       NotFoundError,
