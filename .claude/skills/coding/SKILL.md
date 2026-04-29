@@ -67,14 +67,34 @@ Lis la section « Découpage » du draft (voie A) ou identifie les incréments d
 
 - **Plusieurs incréments décrits** (la session ne couvre qu'un sous-ensemble — ex. incrément 1 sur 3) :
   - Identifie l'identifiant de l'incrément traité (ex. `increment-1`, `increment-2`).
-  - Tous les artefacts scratch vivent sous `.claude/scratch/coding/<slug>/<increment-id>/` :
+  - Le **plan détaillé** de la session courante vit sous `.claude/scratch/coding/<slug>/<increment-id>/` :
     - `plan.md`
     - `escalations/<task-id>.md`
-  - Cela isole le scratch de la session courante des futures sessions sur les autres incréments — pas de collision de nom de tâche, pas d'écrasement de plan.
-- **Un seul incrément** (feature mono-bloc, brief court voie C, ou les 3 incréments couverts en une seule session) :
-  - Scratch plat sous `.claude/scratch/coding/<slug>/`.
+  - La **trajectoire** des incréments restants (esquisses légères, voir sous-section ci-dessous) vit dans un fichier transverse au feature : `.claude/scratch/coding/<slug>/trajectory.md`.
+  - Cela isole le scratch de la session courante des futures sessions sur les autres incréments — pas de collision, pas d'écrasement — tout en persistant le travail mental qui a été fait pour la suite.
+- **Un seul incrément** (feature mono-bloc, brief court voie C, ou tous les incréments couverts en une seule session) :
+  - Scratch plat sous `.claude/scratch/coding/<slug>/` (`plan.md`, `escalations/`).
+  - Pas de `trajectory.md` (rien de futur à esquisser).
 
-Annonce le chemin scratch retenu à l'utilisateur dans le plan que tu présenteras en Phase 3 (« scratch sous `<slug>/increment-1/` car incrément 1 sur 3 »).
+Annonce le chemin scratch retenu à l'utilisateur dans le plan que tu présenteras en Phase 3 (« scratch sous `<slug>/increment-1/` car incrément 1 sur 3 ; trajectoire des incréments 2 et 3 dans `<slug>/trajectory.md` »).
+
+### Trajectoire — esquisses des incréments restants
+
+Au premier `/coding` sur un draft multi-incréments, tu produis **deux artefacts distincts**, de granularité différente :
+
+1. **Plan détaillé** de l'incrément courant (`<slug>/<increment-id>/plan.md`) — tâches numérotées, complexité, modèle suggéré, dépendances, fichiers cibles. C'est le document que tu présenteras pour validation Phase 3.
+
+2. **Trajectoire** des incréments restants (`<slug>/trajectory.md`) — une esquisse légère par incrément non couvert par cette session :
+   - Un titre par incrément (`## Incrément <N> — <nom court>`).
+   - 3-8 bullets sur ce qui doit être fait : tâches imaginées, fichiers principaux pressentis, points d'attention, nouvelles décisions à trancher si tu en pressens.
+   - **Pas** de classification de complexité, pas de modèle suggéré, pas d'estimation. Ce n'est pas un plan, c'est une note brouillon pour l'agent suivant.
+   - En tête : un encart `> Esquisses brouillon produites par /coding lors de la session <date>. À réviser au prochain lancement — l'agent suivant peut tout réécrire.`
+
+Au lancement suivant (autre session sur le même draft, autre incrément) :
+- **Lis** `trajectory.md` pour récupérer l'esquisse de l'incrément que tu vas implémenter.
+- **Lis** le ou les rapports précédents (`docs/sessions/<...>.md`) pour le contexte d'exécution déjà acquis (décisions tranchées, escalations résolues).
+- **Produis** ton plan détaillé qui peut **diverger librement** de l'esquisse — le but de l'esquisse était de te donner un point de départ, pas un contrat. Dans la présentation Phase 3 à l'utilisateur, signale les écarts notables vs ce qui était imaginé (« la trajectoire envisageait T2 en sonnet, je passe en opus parce que… »).
+- En fin de session (Phase 6), **mets à jour** `trajectory.md` : marque ton incrément `Livré — cf. <rapport>` (sans supprimer le contenu — il sert à montrer la divergence imaginée → réelle), et affine éventuellement les esquisses des incréments encore restants si tes choix actuels les impactent.
 
 Template du plan :
 
@@ -263,11 +283,16 @@ La qualité des TU est non négociable : sur du code testé unitairement, le mut
 - `## Liens` : commit subject prévu (`feat(<scope>): <description>`), pointeurs vers escalations conservées, mention du draft supprimé (voie A)
 - **Relecture rapide de cohérence** : la timeline correspond-elle bien à la table coûts ? Les décisions techniques appendées en cours sont-elles toutes consignées ?
 
-**Annotation du draft** (voie A uniquement) : on **ne supprime PAS** le draft. On l'annote en tête avec le statut courant.
+**Cycle de vie des artefacts en fin de session** (voie A uniquement) :
 
-- Si **tous les incréments** décrits dans la section « Découpage » du draft ont été livrés cette session → édite le draft pour passer son statut à `Statut : Livré (cf. docs/sessions/<rapport>.md)`. L'utilisateur le supprimera lui-même quand il considère le draft comme consommé.
-- Si **un sous-ensemble seulement** des incréments a été livré (ex. incrément 1 sur 3) → édite le draft pour ajouter une note de statut en tête : statut courant + lien vers le rapport + liste explicite des incréments restants. Le draft reste la source canonique pour les futures sessions `/coding` sur la suite.
-- **Jamais de `git rm` automatique** : ce serait perdre la source canonique pour les incréments suivants ou priver l'utilisateur de la décision finale. La suppression définitive du draft est une décision utilisateur.
+1. **Plan détaillé éphémère** (`<slug>/<increment-id>/plan.md` et `escalations/`) : son contenu est archivé dans le rapport de session (sections « Plan initial », « Tentatives & impasses »). Une fois le rapport écrit, le sous-dossier `<slug>/<increment-id>/` est **supprimé** du scratch (`rm -rf`). Si une escalation mérite d'être conservée hors-session pour audit, copie-la dans le rapport et déplace-la avant suppression.
+
+2. **Trajectoire** (`<slug>/trajectory.md`) : **mise à jour**, pas supprimée tant qu'il reste des incréments à livrer. Marque l'incrément couvert cette session comme `Livré — cf. <rapport>` (garde le bullet point d'esquisse pour montrer divergence imaginée → réelle, c'est une trace utile). Tu peux affiner les esquisses des incréments encore à venir si tes choix actuels les ont impactées.
+
+3. **Draft d'origine** (`docs/features/drafts/<slug>.md`) : on **ne supprime PAS** automatiquement. On l'**annote** en tête avec le statut courant.
+   - Si **tous les incréments** décrits dans la section « Découpage » du draft ont été livrés (cette session ou des sessions précédentes — vérifie via `docs/sessions/<slug>-*.md`) → édite le draft pour passer son statut à `Statut : Livré (cf. docs/sessions/<rapport>.md, ...)`. À ce moment seulement, **supprime** également la trajectoire (`<slug>/trajectory.md`) et le sous-dossier scratch `<slug>/` devient vide → tu peux le retirer (`rmdir`). Le draft reste sur le disque ; la suppression définitive (`git rm`) est une décision utilisateur.
+   - Si **un sous-ensemble** des incréments a été livré → édite le draft pour ajouter une note de statut en tête : statut courant + lien vers le ou les rapports + liste explicite des incréments restants. Le draft reste la source canonique pour les futures sessions `/coding`.
+   - **Jamais de `git rm` automatique** : ce serait priver l'utilisateur de la décision finale. La suppression définitive du draft est une décision utilisateur.
 
 Pas de SHA dans la métadonnée du rapport (référence circulaire impossible) : la métadonnée mentionne juste le **subject** du commit final attendu. Le lecteur retrouve le SHA via `git log -- docs/sessions/<rapport>.md`.
 

@@ -38,6 +38,7 @@ Le rapport est créé en **Phase 2** et enrichi au fil de l'eau. Chaque section 
 | **Cadrage d'origine** | Voie A : copie intégrale de `docs/features/drafts/<slug>.md` ; Voie B/C : copie intégrale du contenu reçu en `$ARGUMENTS` |
 | Résumé | Synthèse de ce qui a été livré (toi-même, en 3-5 lignes) |
 | Plan initial | Copie de `.claude/scratch/coding/<slug>[/<increment-id>]/plan.md` |
+| Trajectoire (multi-incréments uniquement) | Snapshot de `.claude/scratch/coding/<slug>/trajectory.md` au moment de la session — esquisses des incréments restants. Conservée vivante dans le scratch après commit, supprimée seulement à la dernière session. |
 | Timeline d'exécution | Historique `TaskList` / `TaskUpdate` (status changes + horodatage) |
 | Tentatives & impasses | Tool results des sous-agents (champ `Notes`) + fichiers `.claude/scratch/coding/<slug>[/<increment-id>]/escalations/*.md` |
 | Décisions techniques tranchées | À synthétiser depuis le brief, le grill éventuel, les choix de refactor |
@@ -126,7 +127,8 @@ La section reste, même vide, pour souligner qu'elle a été pensée.)
 - Hooks pré-commit : ok (jamais `--no-verify`)
 
 ## Liens
-- Plan initial : `.claude/scratch/coding/<slug>[/<increment-id>]/plan.md` (scratch éphémère, peut être nettoyé après commit)
+- Plan initial : `.claude/scratch/coding/<slug>[/<increment-id>]/plan.md` (scratch éphémère, supprimé après archive dans ce rapport)
+- Trajectoire (multi-incréments) : `.claude/scratch/coding/<slug>/trajectory.md` — snapshot inclus en annexe ci-dessus, vivante dans le scratch jusqu'à la dernière session
 - Escalations conservées : `.claude/scratch/coding/<slug>[/<increment-id>]/escalations/T2.md` (si pertinent à conserver)
 - Commit subject : `feat(<scope>): <description>` (SHA via `git log -- <ce-fichier>`)
 - Draft d'origine (voie A) : annoté en tête avec son statut (livré / incréments restants), conservé dans le repo. Suppression manuelle à la discrétion de l'utilisateur.
