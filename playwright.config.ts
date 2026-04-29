@@ -24,7 +24,9 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
     env: {
-      MONGO_URI: process.env.MONGO_URI ?? "mongodb://localhost:27017/naboo",
+      // Must match e2e/global-setup.ts — isolated from the dev DB so test data
+      // does not accumulate across runs (matters since listings paginate).
+      MONGO_URI: "mongodb://localhost:27017/naboo_e2e",
       JWT_SECRET:
         process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 32
           ? process.env.JWT_SECRET

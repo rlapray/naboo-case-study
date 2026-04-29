@@ -57,7 +57,7 @@ test.describe("Publier une Activité", () => {
 
     await expect(page).toHaveURL(/\/activities\/create$/);
     await expect(
-      page.getByText("Price required and must be greater than 0"),
+      page.getByText("Prix requis et supérieur à 0"),
     ).toBeVisible();
   });
 });
