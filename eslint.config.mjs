@@ -77,6 +77,15 @@ export default defineConfig([
       "@typescript-eslint/no-unsafe-argument": "warn",
     },
   },
+  {
+    // Test fixtures often need deterministic literals (IPs for rate-limit buckets,
+    // tokens for auth, etc.) that sonarjs flags as security risks in app code.
+    files: ["**/*.{test,spec}.{ts,tsx}", "**/__tests__/**/*.{ts,tsx}"],
+    rules: {
+      "sonarjs/no-hardcoded-ip": "off",
+      "sonarjs/no-hardcoded-passwords": "off",
+    },
+  },
   globalIgnores([
     ".next/**",
     "out/**",

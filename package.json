@@ -19,6 +19,9 @@
     "e2e:debug": "playwright test --debug",
     "e2e:report": "playwright show-report",
     "e2e:codegen": "playwright codegen http://localhost:3001",
+    "mutation": "stryker run",
+    "mutation:incremental": "stryker run --incremental",
+    "mutation:ci": "stryker run --incremental",
     "seed": "tsx scripts/seed.ts",
     "start:db": "docker-compose up -d",
     "stop:db": "docker-compose stop",
@@ -45,6 +48,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@playwright/test": "^1.59.1",
+    "@stryker-mutator/core": "^9.6.1",
+    "@stryker-mutator/vitest-runner": "^9.6.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",

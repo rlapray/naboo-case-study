@@ -42,3 +42,7 @@ next-env.d.ts
 
 # tooling
 .claude/scheduled_tasks.lock
+
+# mutation testing
+/reports/
+/.stryker-tmp/
