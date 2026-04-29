@@ -24,13 +24,15 @@ Exemples :
 | Décisions techniques tranchées | À synthétiser depuis le brief, le grill éventuel, les choix de refactor |
 | Modèles & coûts | TaskList enrichi avec le modèle utilisé par tâche + escalations subies |
 | Quality gate | Sortie de `pnpm verify` et `pnpm verify:test` finale |
-| Liens | Plan initial, escalations conservées, SHA commit, PR (si applicable) |
+| Liens | Plan initial (sera supprimé du scratch après commit), escalations conservées, subject du commit final, PR (si applicable) |
 
 ## Pourquoi archiver le cadrage d'origine
 
-Le draft `docs/features/drafts/<slug>.md` peut être renommé, déplacé ou supprimé après l'implémentation (cycle de vie indépendant). Le rapport est l'**archive consolidée** d'une session : on doit pouvoir le rouvrir 6 mois plus tard et retrouver l'intention initiale **et** l'exécution sans dépendance externe.
+Le rapport est l'**archive consolidée et auto-contenue** d'une session : on doit pouvoir le rouvrir 6 mois plus tard et retrouver l'intention initiale **et** l'exécution sans dépendance externe.
 
-Pour les voies B et C, l'input n'a pas de fichier source — il vit uniquement dans la conversation. L'archiver dans le rapport est encore plus important : sans ça, on ne saura plus jamais ce qui a été demandé.
+**Voie A** : le draft `docs/features/drafts/<slug>.md` est intégré dans la section « Cadrage d'origine » du rapport, **puis supprimé du repo** dans le commit final. Une seule source de vérité (le rapport), pas deux qui pourraient diverger.
+
+**Voies B et C** : l'input n'a pas de fichier source — il vit uniquement dans la conversation. L'archiver dans le rapport est encore plus important : sans ça, on ne saura plus jamais ce qui a été demandé.
 
 ## Template à remplir
 
@@ -40,7 +42,7 @@ Pour les voies B et C, l'input n'a pas de fichier source — il vit uniquement d
 **Date** : YYYY-MM-DD HH:MM (Europe/Paris)
 **Feature** : <nom>
 **Bounded context** : Catalogue | Identité | Administration
-**Commit final** : <SHA short> — <subject>
+**Commit subject** : `feat(<scope>): <description>` (SHA via `git log -- <ce-fichier>`)
 **Voie d'entrée** : A (draft consolidé) | B (brief inline) | C (brief court)
 
 ## Cadrage d'origine
@@ -65,7 +67,7 @@ Si le plan est long, garde la structure brute (T1, T2, ...) et coupe les détail
 - HH:MM — T2 (sonnet) : RED écrit, GREEN initial échoue, retry → ok
 - HH:MM — T3 et T4 (sonnet, parallèle) : succès simultanés à HH:MM
 - HH:MM — Quality gate : `pnpm verify` ok, `pnpm verify:test` ok
-- HH:MM — Commit `<SHA>`
+- HH:MM — Rapport rédigé, draft supprimé, commit final
 
 ## Tentatives & impasses (mise en avant)
 > Ce qui a été essayé mais n'a pas fonctionné, et ce qui a été retenu à la place.
@@ -102,9 +104,10 @@ La section reste, même vide, pour souligner qu'elle a été pensée.)
 - Hooks pré-commit : ok (jamais `--no-verify`)
 
 ## Liens
-- Plan initial : `.claude/scratch/coding/<slug>/plan.md`
-- Escalations conservées : `.claude/scratch/coding/<slug>/escalations/T2.md`
-- Commit : `<SHA>`
+- Plan initial : `.claude/scratch/coding/<slug>/plan.md` (scratch éphémère, peut être nettoyé après commit)
+- Escalations conservées : `.claude/scratch/coding/<slug>/escalations/T2.md` (si pertinent à conserver)
+- Commit subject : `feat(<scope>): <description>` (SHA via `git log -- <ce-fichier>`)
+- Draft d'origine (voie A) : supprimé du repo après archive dans ce rapport (`git rm docs/features/drafts/<slug>.md`)
 - PR (si créée) : <lien manuel — pas créée par /coding>
 ```
 

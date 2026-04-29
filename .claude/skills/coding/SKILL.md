@@ -163,18 +163,17 @@ L'escalation file est **persistant** : reste après l'exécution, sert d'audit, 
 
 ---
 
-## Phase 5 — Quality gate + commit
+## Phase 5 — Quality gate
 
 1. `pnpm verify` (lint + typecheck) — bloquant
 2. `pnpm verify:test` (vitest) — bloquant
 3. Si UI changée et tâches RTL prévues, vérifie que le test RTL passe ; sinon, sanity check chrome-cdp ou e2e
-4. Invoque `/commit` (un commit par feature/incrément, pas par sous-tâche TDD)
 
-Jamais `--no-verify`. Si une commande échoue, corrige avant de continuer.
+Jamais `--no-verify`. Si une commande échoue, corrige avant de continuer. **Pas de commit à cette phase** : le commit final inclura aussi le rapport et la suppression du draft (Phase 6).
 
 ---
 
-## Phase 6 — Rapport de session
+## Phase 6 — Rapport de session + commit final
 
 Rédige un rapport timestampé dans `docs/sessions/<YYYY-MM-DD-HHMM>-<feature-slug>.md`. Crée le dossier `docs/sessions/` s'il n'existe pas.
 
@@ -197,7 +196,18 @@ Template complet et exemples : `references/session-report-template.md`.
 - `git log -1 --format=%H%n%s` du commit final → métadonnées (SHA + subject)
 - Sortie de `pnpm verify` et `pnpm verify:test` finale → section « Quality gate »
 
-**La valeur du rapport** : le cadrage d'origine archivé garantit qu'on retrouve l'intention initiale même si le draft est ensuite renommé/supprimé. La section « Tentatives & impasses » archive ce qui a été essayé et n'a pas marché. Pas de liste exhaustive de fichiers (le commit fait foi).
+**La valeur du rapport** : le cadrage d'origine archivé rend le rapport auto-contenu. La section « Tentatives & impasses » archive ce qui a été essayé et n'a pas marché. Pas de liste exhaustive de fichiers (le commit fait foi).
+
+**Cleanup post-archive** (voie A uniquement) : une fois le rapport écrit, **supprime** le draft `docs/features/drafts/<slug>.md` (`git rm`). Son contenu est désormais archivé dans le rapport ; le garder créerait deux sources de vérité divergentes. Pour les voies B/C, il n'y a pas de fichier draft à supprimer.
+
+### Commit final (un seul commit englobant)
+
+Une fois le rapport écrit et le draft supprimé (le cas échéant), invoque `/commit`. **Le commit final inclut tout en une seule fois** :
+- Le code de la feature (déjà staged ou prêt à être staged)
+- Le rapport `docs/sessions/<YYYY-MM-DD-HHMM>-<slug>.md`
+- La suppression de `docs/features/drafts/<slug>.md` (voie A)
+
+Pas de SHA dans la métadonnée du rapport (référence circulaire impossible) : la métadonnée mentionne juste le **subject** du commit final attendu (`feat(<scope>): <description>`). Le lecteur retrouve le SHA via `git log -- docs/sessions/<rapport>.md`.
 
 ---
 
