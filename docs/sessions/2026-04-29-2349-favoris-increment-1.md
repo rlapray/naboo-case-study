@@ -1,15 +1,21 @@
+# Session — Favoris (incrément 1 — walking skeleton)
+
+**Date** : 2026-04-29 23:49 (Europe/Paris)
+**Feature** : Favoris (incrément 1 sur 3)
+**Bounded contexts** : Catalogue × Identité
+**Commit subject** : `feat(favorites): walking skeleton for Mes favoris (mark, list, remove)` (SHA via `git log -- docs/sessions/2026-04-29-2349-favoris-increment-1.md`)
+**Voie d'entrée** : A (draft consolidé issu de `/shaping-feature` + `/grill-me`)
+
+## Cadrage d'origine
+
+> Source : `docs/features/drafts/favoris.md` (conservé dans le repo, annoté avec note de statut renvoyant ici ; reste la source canonique pour les incréments 2 et 3 à venir).
+
 # Shape — Favoris
 
-**Statut** : Draft (incrément 1 livré le 2026-04-29 — cf. `docs/sessions/2026-04-29-2349-favoris-increment-1.md`)
+**Statut** : Draft
 **Date** : 2026-04-29
 **Auteur** : Romain Lapray
 **Slug** : favoris
-
-> **Incréments restants à livrer** :
-> - Incrément 2 — Réordonnancement (`PATCH /api/me/favorites` + DnD sur `/profil` + optimistic update + rollback)
-> - Incrément 3 — Hydratation des listes (`<FavoriteToggle>` sur cards Découvrir / Explorer / Mes activités)
->
-> Pour relancer `/coding` sur l'incrément 2 ou 3, ce draft reste la source de vérité.
 
 ## Job (JTBD)
 
@@ -167,3 +173,94 @@ Trois incréments séquencés (touche 2 Bounded Contexts, 4 routes nouvelles, sc
 - **ADRs liés** : aucun à date. Q1 (collection dédiée) et Q5 (couplage front-only via AuthContext) sont des candidats de promotion en ADR via `/writing-adrs`.
 - **Features liées** : `docs/features/FEATURES.CATALOGUE.md` (Consulter la fiche d'une Activité, Mes activités) et `docs/features/FEATURES.IDENTITE.md` (Consulter mon Profil).
 - **Issues / PRs** : à créer au démarrage de l'incrément 1.
+
+---
+
+## Résumé
+
+Incrément 1 livré : un Utilisateur connecté peut marquer une Activité comme Favori depuis sa fiche, la liste s'affiche sur `/profil` (SSR, ordonnée par `position` côté serveur), et il peut la retirer depuis la fiche ou depuis le Profil. Un Visiteur qui clique le cœur voit s'ouvrir une modale de vente proposant Connexion ou Inscription. Schema Mongoose dédié, 4 routes REST (`POST/DELETE /api/me/favorites/:id`, `GET /api/me/favorites`, `GET /api/me/favorites/ids`), `AuthContext` étendu avec `favoriteIds: Set<string>` (optimistic + rollback). Critère de succès du draft tenu.
+
+## Plan initial
+
+8 tâches, chaîne strictement séquentielle (T1 → T2 → … → T8), aucune parallélisation utile. Détail dans `.claude/scratch/coding/favoris/increment-1/plan.md` (scratch, peut être nettoyé après commit).
+
+| # | Tâche | Couche | Modèle |
+|---|---|---|---|
+| T1 | Schema Mongoose `Favorite` + `FavoriteDto` + indexes | server | sonnet (fait directement par l'agent principal) |
+| T2 | Service `favoriteService` + tests intégration | server | opus |
+| T3 | 4 routes API REST `/api/me/favorites*` + tests HTTP | server | sonnet |
+| T4 | `AuthContext` étendu avec `favoriteIds` | client | sonnet |
+| T5 | `<FavoriteToggle>` + `<SignInPromptModal>` + tests RTL | client | sonnet |
+| T6 | Section « Mes favoris » sur `/profil` (SSR) + toggle sur fiche | client | sonnet |
+| T7 | E2E Playwright (parcours connecté + visiteur) | e2e | opus |
+| T8 | Quality gate + rapport + commit final | meta | orchestré par l'agent principal |
+
+## Timeline d'exécution
+
+- 23:18 — T1 (agent principal) : schema + DTO posés, `pnpm verify` ok.
+- 23:24 — T2 (opus) : 18 cas RED puis GREEN, suite serveur 268/268.
+- 23:28 — T3 (sonnet) : 15 cas HTTP, suite 283/283.
+- 23:32 — T4 (sonnet) : 9 cas RTL sur `AuthContext`, suite 282/282.
+- 23:34 — T5 (sonnet) : 9 cas RTL (`<FavoriteToggle>` + `<SignInPromptModal>`), suite 291/291.
+- 23:37 — T6 (sonnet) : 6 cas RTL (`/profil` + fiche Activité), suite 297/297. La page `/profil` passe en `getServerSideProps` (auth + favoris en SSR), le HOC `withAuth` est retiré de cette page.
+- 23:40 — T7 (opus) ESCALATION : `pnpm e2e:server` (next build) refusait les fichiers de test colocalisés sous `src/pages/`.
+- 23:43 — Agent principal : déplacement des tests vers `src/__tests__/pages/` (la première tentative dans `src/pages/__tests__/` ne suffisait pas — Next scanne récursivement). Cache `.next/` purgé. `pnpm verify` re-passe.
+- 23:46 — T7 (opus) reprise : 3 scénarios e2e passants (S1 connecté, S2 visiteur → /signin, S3 visiteur → /signup), suite e2e 36/36.
+- 23:49 — Quality gate final : verify ok, verify:test 297/297 ok, e2e 36/36 ok.
+- 23:50 — Rapport rédigé, draft annoté avec statut + incréments restants, commit final préparé.
+
+## Tentatives & impasses
+
+- **T2 — index `(userId, position)` unique** : le draft prescrivait un index unique sur `(userId, position)`. Conservé non-unique côté schema car le `bulkWrite` de décalage `$inc: { position: 1 }` viole transitoirement la contrainte unique sur MongoDB (les writes ne sont pas un swap atomique). Cohérence des positions assumée par le service ; un test de sanity-check vérifie que l'unicité `(userId, activityId)` (anti-doublon, elle critique) reste appliquée. Justification documentée en commentaire de `src/server/favorites/favorite.schema.ts`.
+- **T2 — chaîner `populate` sur le doc retourné par `create`** : ne fonctionne pas correctement (le populate ne déréférence pas l'`ObjectId` stocké). Le sous-agent re-fetche via `loadHydrated(userId, activityId)` après `create`. Coût : un round-trip Mongo de plus, payé pour la lisibilité.
+- **T6 — pattern de la page `/profil`** : le code existant utilisait le HOC client-side `withAuth(Profile)` (redirection après render). Pour respecter le plan (« pas de bouclage HTTP self-call ; appeler le service serveur depuis `getServerSideProps` »), la page passe en SSR : `getServerSideProps` fait `getCurrentUser(req)` + redirect serveur si null, puis charge les favoris via `favoriteService.findByUser`. Le HOC `withAuth` reste utilisé par les autres pages (intact dans `src/hocs/`), seul son usage sur `/profil` est retiré.
+- **T7 — escalation Next.js build vs tests colocalisés** : `T6` avait colocalisé `src/pages/profil.test.tsx` et `src/pages/activities/[id].test.tsx`. `pnpm dev` les ignore, mais `next build` (utilisé par `pnpm e2e:server`) les traite comme des pages et exige un default export `PagesPageConfig`. Première tentative de fix : `src/pages/__tests__/` — toujours scanné par Next. Fix retenu : déplacement complet hors de `src/pages/`, vers `src/__tests__/pages/`. Vitest les ramasse via les imports en alias `@/pages/...`. Escalation persistée dans `.claude/scratch/coding/favoris/increment-1/escalations/T7.md`.
+- **T7 — anti-flake e2e** : la vérification de l'ajout au Profil nécessite un `waitForResponse` sur le POST `/api/me/favorites/[activityId]` avant la navigation vers `/profil`, sinon le SSR de `getServerSideProps` lit la DB avant la persistance optimistic. Idem pour le retrait : un `reload()` est obligatoire pour distinguer la persistance DB de l'optimistic-update côté UI.
+
+## Décisions techniques tranchées
+
+- **École TDD** : Chicago bottom-up. Backend nouveau → on commence par le schema + service + routes, puis on remonte vers le composant et la page.
+- **Worktree** : non.
+- **Index `(userId, position)` non unique** (cf. ci-dessus).
+- **Owner peut favoriser sa propre Activité** (décision ouverte du draft tranchée à « oui », couvert par un test).
+- **Réponse `POST /api/me/favorites/:activityId`** : `FavoriteDto` complet avec Activité hydratée — simplifie le client sans nécessiter un re-fetch.
+- **Page `/profil` en SSR** : `getServerSideProps` fait l'auth serveur + charge les favoris ; le HOC `withAuth` est retiré de cette page seule.
+- **Tests de page colocalisés interdits** : à cause de Next.js, les tests de fichiers `src/pages/**` doivent vivre sous `src/__tests__/pages/**` (et non sous `src/pages/**`). Convention à propager si d'autres tests de page sont ajoutés.
+- **Gestion du cap 100 côté UI** : sur `ApiError` 400, `addFavoriteId` (dans `AuthContext`) rollback + `snackbar.error("Vous avez atteint la limite de 100 favoris.")`. Aucune nouvelle infra UI introduite.
+- **Modale de vente** : composant Mantine `<SignInPromptModal>` partagé via `src/components/`. Le bouton de fermeture reçoit explicitement `aria-label="Fermer"` (Mantine par défaut n'a pas de label exposé en jsdom).
+
+## Modèles & coûts
+
+| Tâche | Complexité | Modèle | Effort | Escalation ? |
+|---|---|---|---|---|
+| T1 | trivial | (agent principal) | low | non |
+| T2 | complexe | opus | high | non |
+| T3 | standard | sonnet | medium | non |
+| T4 | standard | sonnet | medium | non |
+| T5 | standard | sonnet | medium | non |
+| T6 | standard | sonnet | medium | non |
+| T7 | complexe | opus | high | oui (relancée après déblocage par l'agent principal) |
+| T8 | meta | (agent principal) | low | non |
+
+## Quality gate
+
+- `pnpm verify` (lint + typecheck) : ok
+- `pnpm verify:test` (vitest unit + intégration serveur) : 297 tests / 49 fichiers, 7,5 s, ok
+- `pnpm test:e2e` : 36 scénarios, ok (3 scénarios Favoris + suite préexistante intacte)
+- Tests ajoutés : 53 unit/RTL (T2: 18 + T3: 15 + T4: 9 + T5: 9 + T6: 6 — soit 18 unit serveur, 15 HTTP intégration, 20 RTL) + 3 e2e
+- Hooks pré-commit : ok (jamais `--no-verify`)
+
+## Hors scope (incrément 1)
+
+Reportés conformément au draft et au plan validé :
+- **Incrément 2** : route `PATCH /api/me/favorites`, DnD sur `/profil`, optimistic reorder + rollback. Lib DnD à arbitrer (`@hello-pangea/dnd`, `dnd-kit`, ou HTML5 natif).
+- **Incrément 3** : `<FavoriteToggle>` posé sur les cards Découvrir / Explorer / Mes activités, vérification que `favoriteIds` (déjà dans `AuthContext`) hydrate l'icône partout sans rechargement.
+- **E2E « cap 100 atteint »** : reporté — pas critique pour le walking skeleton, peut accompagner l'incrément 2 ou 3.
+
+## Liens
+
+- Plan initial : `.claude/scratch/coding/favoris/increment-1/plan.md` (scratch éphémère).
+- Escalation conservée : `.claude/scratch/coding/favoris/increment-1/escalations/T7.md` (détail du diagnostic Next.js build).
+- Commit subject : `feat(favorites): walking skeleton for Mes favoris (mark, list, remove)` (SHA via `git log -- docs/sessions/2026-04-29-2349-favoris-increment-1.md`).
+- Draft d'origine (voie A) : conservé dans `docs/features/drafts/favoris.md`, annoté en tête avec note de statut (incrément 1 livré, incréments 2 et 3 restants). Source canonique pour les futures sessions `/coding`. Le contenu intégral est aussi archivé ci-dessus dans « Cadrage d'origine » pour rendre ce rapport auto-contenu.
+- ADR candidats (reportés) : Q1 (collection dédiée) et Q5 (couplage front-only via `AuthContext`) — à promouvoir via `/writing-adrs` lors d'un futur passage.

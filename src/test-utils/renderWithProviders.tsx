@@ -12,9 +12,12 @@ import type { UserDto } from "@/types/user";
 type AuthContextValue = {
   user: UserDto | null;
   isLoading: boolean;
+  favoriteIds: Set<string>;
   handleSignin: (...args: unknown[]) => Promise<void>;
   handleSignup: (...args: unknown[]) => Promise<void>;
   handleLogout: () => Promise<void>;
+  addFavoriteId: (activityId: string) => Promise<void>;
+  removeFavoriteId: (activityId: string) => Promise<void>;
 };
 
 type SnackbarContextValue = {
@@ -28,9 +31,12 @@ const noop = () => undefined;
 const defaultAuth: AuthContextValue = {
   user: null,
   isLoading: false,
+  favoriteIds: new Set<string>(),
   handleSignin: noopAsync,
   handleSignup: noopAsync,
   handleLogout: noopAsync,
+  addFavoriteId: noopAsync,
+  removeFavoriteId: noopAsync,
 };
 
 const defaultSnackbar: SnackbarContextValue = {

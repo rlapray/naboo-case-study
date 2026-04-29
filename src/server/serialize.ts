@@ -1,13 +1,19 @@
 import type { Types } from "mongoose";
 import type { ActivityDto } from "@/types/activity";
+import type { FavoriteDto } from "@/types/favorite";
 import type { PublicUserDto, UserDto } from "@/types/user";
 import type { ActivityDocument } from "./activities/activity.schema";
+import type { FavoriteDocument } from "./favorites/favorite.schema";
 import type { IUser, UserDocument } from "./users/user.schema";
 
 type AnyUser = UserDocument | (IUser & { _id: Types.ObjectId });
 
 interface PopulatedActivity extends Omit<ActivityDocument, "owner"> {
   owner: AnyUser;
+}
+
+interface PopulatedFavorite extends Omit<FavoriteDocument, "activityId"> {
+  activityId: ActivityDocument;
 }
 
 export function toPublicUserDto(user: AnyUser): PublicUserDto {
@@ -38,4 +44,18 @@ export function toActivityDto(activity: ActivityDocument): ActivityDto {
 
 export function toActivityDtos(activities: ActivityDocument[]): ActivityDto[] {
   return activities.map(toActivityDto);
+}
+
+export function toFavoriteDto(favorite: FavoriteDocument): FavoriteDto {
+  const populated = favorite as unknown as PopulatedFavorite;
+  return {
+    id: populated._id.toString(),
+    activity: toActivityDto(populated.activityId),
+    position: populated.position,
+    createdAt: populated.createdAt.toISOString(),
+  };
+}
+
+export function toFavoriteDtos(favorites: FavoriteDocument[]): FavoriteDto[] {
+  return favorites.map(toFavoriteDto);
 }

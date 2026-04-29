@@ -2,7 +2,7 @@ import { Badge, Flex, Grid, Group, Image, Text } from "@mantine/core";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { PageTitle } from "@/components";
+import { FavoriteToggle, PageTitle } from "@/components";
 import { activityService } from "@/server/activities/activity.service";
 import { connectDb } from "@/server/db";
 import { NotFoundError } from "@/server/errors";
@@ -48,13 +48,16 @@ export default function ActivityDetails({ activity }: ActivityDetailsProps) {
         </Grid.Col>
         <Grid.Col span={5}>
           <Flex direction="column" gap="md">
-            <Group mt="md" mb="xs">
-              <Badge color="pink" variant="light">
-                {activity.city}
-              </Badge>
-              <Badge color="yellow" variant="light">
-                {`${activity.price}€/j`}
-              </Badge>
+            <Group mt="md" mb="xs" justify="space-between">
+              <Group gap="xs">
+                <Badge color="pink" variant="light">
+                  {activity.city}
+                </Badge>
+                <Badge color="yellow" variant="light">
+                  {`${activity.price}€/j`}
+                </Badge>
+              </Group>
+              <FavoriteToggle activityId={activity.id} />
             </Group>
             <Text size="sm">{activity.description}</Text>
             <Text size="sm" c="dimmed">

@@ -4,6 +4,7 @@ import type {
   PaginatedActivitiesResponse,
 } from "@/types/activity";
 import type { SignInInput, SignInResponse, SignUpInput } from "@/types/auth";
+import type { FavoriteDto, FavoriteIdsResponse, FavoritesListResponse } from "@/types/favorite";
 import type { UserDto } from "@/types/user";
 
 function withQuery(path: string, params: Record<string, string | number | undefined>): string {
@@ -113,6 +114,26 @@ export const api = {
     return request<ActivityDto>("/api/activities", {
       method: "POST",
       body: JSON.stringify(input),
+    });
+  },
+
+  getFavoriteIds(): Promise<FavoriteIdsResponse> {
+    return request<FavoriteIdsResponse>("/api/me/favorites/ids");
+  },
+
+  getFavorites(): Promise<FavoritesListResponse> {
+    return request<FavoritesListResponse>("/api/me/favorites");
+  },
+
+  addFavorite(activityId: string): Promise<FavoriteDto> {
+    return request<FavoriteDto>(`/api/me/favorites/${encodeURIComponent(activityId)}`, {
+      method: "POST",
+    });
+  },
+
+  removeFavorite(activityId: string): Promise<void> {
+    return request<void>(`/api/me/favorites/${encodeURIComponent(activityId)}`, {
+      method: "DELETE",
     });
   },
 };

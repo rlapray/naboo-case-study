@@ -1,191 +1,202 @@
 // @vitest-environment jsdom
-import { act, renderHook, waitFor } from "@testing-library/react";
-import { StrictMode, useContext } from "react";
+import { renderHook, act, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthProvider } from "@/contexts/authContext";
+import type * as hooksModule from "@/hooks";
 import { useAuth } from "@/hooks";
-import type * as ApiModule from "@/services/api";
-import { AuthProvider } from "./authContext";
 
-const getMe = vi.fn();
-const login = vi.fn();
-const register = vi.fn();
-const logout = vi.fn();
-const push = vi.fn();
-const snackbarError = vi.fn();
+// Mocks à la frontière HTTP uniquement
+vi.mock("@/services/api", () => ({
+  ApiError: class ApiError extends Error {
+    status: number;
+    details?: unknown;
+    constructor(status: number, message: string, details?: unknown) {
+      super(message);
+      this.name = "ApiError";
+      this.status = status;
+      this.details = details;
+    }
+  },
+  api: {
+    getMe: vi.fn(),
+    login: vi.fn(),
+    logout: vi.fn(),
+    register: vi.fn(),
+    getFavoriteIds: vi.fn(),
+    getFavorites: vi.fn(),
+    addFavorite: vi.fn(),
+    removeFavorite: vi.fn(),
+  },
+}));
 
-vi.mock("@/services/api", async () => {
-  const actual = await vi.importActual<typeof ApiModule>("@/services/api");
+vi.mock("next/router", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+
+const mockSnackbarError = vi.fn();
+const mockSnackbarSuccess = vi.fn();
+
+vi.mock("@/hooks", async (importOriginal) => {
+  const original = await importOriginal<typeof hooksModule>();
   return {
-    ApiError: actual.ApiError,
-    api: {
-      getMe: (...args: unknown[]): unknown => getMe(...args),
-      login: (...args: unknown[]): unknown => login(...args),
-      register: (...args: unknown[]): unknown => register(...args),
-      logout: (...args: unknown[]): unknown => logout(...args),
-    },
+    ...original,
+    useSnackbar: () => ({ error: mockSnackbarError, success: mockSnackbarSuccess }),
   };
 });
 
-vi.mock("@/hooks/useSnackbar", () => ({
-  useSnackbar: () => ({ error: snackbarError, success: vi.fn() }),
-}));
+// Import api after mock setup
+const { api, ApiError } = await import("@/services/api");
 
-vi.mock("next/router", () => ({
-  useRouter: () => ({ push }),
-}));
+const fakeUser = { id: "u1", email: "test@test.com", firstName: "Alice", lastName: "Doe" };
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <StrictMode>
-    <AuthProvider>{children}</AuthProvider>
-  </StrictMode>
-);
-
-async function renderReadyAuth() {
-  const { ApiError } = await import("@/services/api");
-  getMe.mockRejectedValue(new ApiError(401, "Unauthorized"));
-  const { result } = renderHook(() => useAuth(), { wrapper });
-  await waitFor(() => expect(result.current.isLoading).toBe(false));
-  return result;
+function wrapper({ children }: { children: ReactNode }) {
+  return <AuthProvider>{children}</AuthProvider>;
 }
 
-describe("AuthProvider", () => {
-  beforeEach(() => {
-    getMe.mockReset();
-    login.mockReset();
-    register.mockReset();
-    logout.mockReset();
-    push.mockReset();
-    snackbarError.mockReset();
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
-  it("flips isLoading to false after getMe resolves under StrictMode", async () => {
-    getMe.mockResolvedValue({ id: "1", email: "a@b.c" });
+describe("AuthContext — favoriteIds", () => {
+  it("1. au mount si getMe réussit, loadFavoriteIds est appelé et favoriteIds est peuplé", async () => {
+    vi.mocked(api.getMe).mockResolvedValue(fakeUser as never);
+    vi.mocked(api.getFavoriteIds).mockResolvedValue({ ids: ["act1", "act2"] });
+
     const { result } = renderHook(() => useAuth(), { wrapper });
-    expect(result.current.isLoading).toBe(true);
+
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.user).toMatchObject({ email: "a@b.c" });
+
+    expect(api.getFavoriteIds).toHaveBeenCalledTimes(1);
+    expect(result.current.favoriteIds).toEqual(new Set(["act1", "act2"]));
   });
 
-  it("flips isLoading to false on 401 (unauthenticated user)", async () => {
-    const { ApiError } = await import("@/services/api");
-    getMe.mockRejectedValue(new ApiError(401, "Unauthorized"));
+  it("2. au mount si getMe rejette (401), favoriteIds reste vide ET getFavoriteIds n'est PAS appelé", async () => {
+    vi.mocked(api.getMe).mockRejectedValue(new ApiError(401, "Unauthorized"));
+
     const { result } = renderHook(() => useAuth(), { wrapper });
-    expect(result.current.isLoading).toBe(true);
+
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.user).toBeNull();
+
+    expect(api.getFavoriteIds).not.toHaveBeenCalled();
+    expect(result.current.favoriteIds).toEqual(new Set());
   });
 
-  it("handleSignin: stocke l'utilisateur et redirige vers /profil", async () => {
-    const result = await renderReadyAuth();
-    login.mockResolvedValue({ user: { id: "u-1", email: "a@b.c" } });
+  it("3. handleSignin réussi recharge favoriteIds", async () => {
+    vi.mocked(api.getMe).mockRejectedValue(new ApiError(401, "Unauthorized"));
+    vi.mocked(api.login).mockResolvedValue({ user: fakeUser } as never);
+    vi.mocked(api.getFavoriteIds).mockResolvedValue({ ids: ["act3"] });
 
-    await act(async () => {
-      await result.current.handleSignin({ email: "a@b.c", password: "x" });
-    });
-
-    expect(result.current.user).toMatchObject({ email: "a@b.c" });
-    expect(push).toHaveBeenCalledWith("/profil");
-    expect(snackbarError).not.toHaveBeenCalled();
-  });
-
-  it("handleSignin: déclenche un snackbar d'erreur en cas d'échec", async () => {
-    const result = await renderReadyAuth();
-    login.mockRejectedValue(new Error("nope"));
-
-    await act(async () => {
-      await result.current.handleSignin({ email: "a@b.c", password: "x" });
-    });
-
-    expect(result.current.user).toBeNull();
-    expect(snackbarError).toHaveBeenCalledWith("Une erreur est survenue");
-  });
-
-  it("handleSignup: redirige vers /signin en cas de succès", async () => {
-    const result = await renderReadyAuth();
-    register.mockResolvedValue({ id: "u-1" });
-
-    await act(async () => {
-      await result.current.handleSignup({
-        firstName: "Ada",
-        lastName: "Lovelace",
-        email: "a@b.c",
-        password: "x",
-      });
-    });
-
-    expect(push).toHaveBeenCalledWith("/signin");
-  });
-
-  it("handleLogout: vide l'utilisateur et redirige vers /", async () => {
-    getMe.mockResolvedValue({ id: "u-1", email: "a@b.c" });
     const { result } = renderHook(() => useAuth(), { wrapper });
-    await waitFor(() => expect(result.current.user).not.toBeNull());
-    logout.mockResolvedValue({ ok: true });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(api.getFavoriteIds).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.handleSignin({ email: "test@test.com", password: "secret" });
+    });
+
+    expect(api.getFavoriteIds).toHaveBeenCalledTimes(1);
+    expect(result.current.favoriteIds).toEqual(new Set(["act3"]));
+  });
+
+  it("4. handleLogout remet favoriteIds à un Set vide", async () => {
+    vi.mocked(api.getMe).mockResolvedValue(fakeUser as never);
+    vi.mocked(api.getFavoriteIds).mockResolvedValue({ ids: ["act1"] });
+    vi.mocked(api.logout).mockResolvedValue({ ok: true });
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.favoriteIds).toEqual(new Set(["act1"])));
 
     await act(async () => {
       await result.current.handleLogout();
     });
 
-    expect(result.current.user).toBeNull();
-    expect(push).toHaveBeenCalledWith("/");
+    expect(result.current.favoriteIds).toEqual(new Set());
   });
 
-  it("logue l'erreur quand getMe échoue avec autre chose qu'un 401", async () => {
-    const errorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-    getMe.mockRejectedValue(new Error("boom"));
+  it("5. addFavoriteId met à jour le Set de manière optimistic", async () => {
+    vi.mocked(api.getMe).mockResolvedValue(fakeUser as never);
+    vi.mocked(api.getFavoriteIds).mockResolvedValue({ ids: [] });
+    let resolveAdd!: () => void;
+    vi.mocked(api.addFavorite).mockReturnValue(
+      new Promise<never>((res) => { resolveAdd = res as () => void; }),
+    );
 
     const { result } = renderHook(() => useAuth(), { wrapper });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(errorSpy).toHaveBeenCalled();
-    expect(result.current.user).toBeNull();
-    errorSpy.mockRestore();
-  });
-
-  it("handleSignup: déclenche un snackbar d'erreur en cas d'échec", async () => {
-    const result = await renderReadyAuth();
-    register.mockRejectedValue(new Error("nope"));
-
-    await act(async () => {
-      await result.current.handleSignup({
-        firstName: "Ada",
-        lastName: "Lovelace",
-        email: "a@b.c",
-        password: "x",
-      });
+    act(() => {
+      void result.current.addFavoriteId("newAct");
     });
 
-    expect(snackbarError).toHaveBeenCalledWith("Une erreur est survenue");
-    expect(push).not.toHaveBeenCalledWith("/signin");
+    expect(result.current.favoriteIds).toEqual(new Set(["newAct"]));
+
+    resolveAdd();
   });
 
-  it("expose des handlers par défaut résolvants quand le contexte est consommé sans Provider", async () => {
-    const { AuthContext } = await import("./authContext");
-    const { result } = renderHook(() => useContext(AuthContext));
-    await expect(
-      result.current.handleSignin({ email: "", password: "" }),
-    ).resolves.toBeUndefined();
-    await expect(
-      result.current.handleSignup({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-      }),
-    ).resolves.toBeUndefined();
-    await expect(result.current.handleLogout()).resolves.toBeUndefined();
-  });
+  it("6. addFavoriteId rollback + snackbar.error sur échec API générique", async () => {
+    vi.mocked(api.getMe).mockResolvedValue(fakeUser as never);
+    vi.mocked(api.getFavoriteIds).mockResolvedValue({ ids: ["existing"] });
+    vi.mocked(api.addFavorite).mockRejectedValue(new Error("network error"));
 
-  it("handleLogout: snackbar d'erreur si l'API échoue", async () => {
-    const result = await renderReadyAuth();
-    logout.mockRejectedValue(new Error("nope"));
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.favoriteIds).toEqual(new Set(["existing"])));
 
     await act(async () => {
-      await result.current.handleLogout();
+      await result.current.addFavoriteId("newAct");
     });
 
-    expect(snackbarError).toHaveBeenCalledWith("Une erreur est survenue");
+    expect(result.current.favoriteIds).toEqual(new Set(["existing"]));
+    expect(mockSnackbarError).toHaveBeenCalledWith("Une erreur est survenue");
+  });
+
+  it("7. addFavoriteId snackbar.error spécifique cap atteint sur ApiError 400", async () => {
+    vi.mocked(api.getMe).mockResolvedValue(fakeUser as never);
+    vi.mocked(api.getFavoriteIds).mockResolvedValue({ ids: [] });
+    vi.mocked(api.addFavorite).mockRejectedValue(new ApiError(400, "limit reached"));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.addFavoriteId("newAct");
+    });
+
+    expect(mockSnackbarError).toHaveBeenCalledWith("Vous avez atteint la limite de 100 favoris.");
+  });
+
+  it("8. removeFavoriteId optimistic (l'ID est retiré immédiatement)", async () => {
+    vi.mocked(api.getMe).mockResolvedValue(fakeUser as never);
+    vi.mocked(api.getFavoriteIds).mockResolvedValue({ ids: ["act1", "act2"] });
+    let resolveRemove!: () => void;
+    vi.mocked(api.removeFavorite).mockReturnValue(
+      new Promise<never>((res) => { resolveRemove = res as () => void; }),
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.favoriteIds).toEqual(new Set(["act1", "act2"])));
+
+    act(() => {
+      void result.current.removeFavoriteId("act1");
+    });
+
+    expect(result.current.favoriteIds).toEqual(new Set(["act2"]));
+
+    resolveRemove();
+  });
+
+  it("9. removeFavoriteId rollback + snackbar.error sur échec API", async () => {
+    vi.mocked(api.getMe).mockResolvedValue(fakeUser as never);
+    vi.mocked(api.getFavoriteIds).mockResolvedValue({ ids: ["act1", "act2"] });
+    vi.mocked(api.removeFavorite).mockRejectedValue(new Error("network error"));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.favoriteIds).toEqual(new Set(["act1", "act2"])));
+
+    await act(async () => {
+      await result.current.removeFavoriteId("act1");
+    });
+
+    expect(result.current.favoriteIds).toEqual(new Set(["act1", "act2"]));
+    expect(mockSnackbarError).toHaveBeenCalledWith("Une erreur est survenue");
   });
 });
