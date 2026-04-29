@@ -35,6 +35,7 @@ export function errorToResponse(err: unknown): ErrorResponse {
       headers: { "Retry-After": String(err.retryAfterSeconds) },
     };
   }
+  // Stryker disable next-line StringLiteral: log prefix, not an observable behaviour
   console.error("[api] unexpected error:", err);
   return { status: 500, body: { error: "Internal Server Error" } };
 }
