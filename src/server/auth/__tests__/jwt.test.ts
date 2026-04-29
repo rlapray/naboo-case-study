@@ -84,6 +84,24 @@ describe("jwt", () => {
     expect(verifyToken(tokenWithoutEmail)).toBeNull();
   });
 
+  it("embeds an exp claim equal to iat + JWT_EXPIRATION_TIME in the signed token", () => {
+    // Arrange
+    process.env.JWT_EXPIRATION_TIME = "120";
+    __resetEnvCacheForTests();
+
+    // Act
+    const token = signToken(PAYLOAD);
+
+    // Assert — decode without verification to inspect the claims
+    const [, payloadSegment] = token.split(".");
+    const claims = JSON.parse(Buffer.from(payloadSegment, "base64url").toString("utf8")) as {
+      iat: number;
+      exp: number;
+    };
+    // Kills ObjectLiteral on `{ expiresIn: env.JWT_EXPIRATION_TIME }` → `{}` (no exp claim).
+    expect(claims.exp).toBe(claims.iat + 120);
+  });
+
   it("returns null when the token is a string-only payload", () => {
     // Arrange — jsonwebtoken allows signing a string; verify() then returns a string.
     const stringToken = sign("just-a-string", process.env.JWT_SECRET as string);
