@@ -245,6 +245,139 @@ describe("favorites HTTP handlers", () => {
       // Assert
       expect(res.status).toBe(400);
     });
+
+    it("returns 400 when activityId embeds 24 hex chars inside non-hex characters (anchors ^ and $ required)", async () => {
+      // Arrange — a string that contains a valid 24-hex sequence but is NOT a pure 24-hex string.
+      // Without the ^ and $ anchors the regex /[a-f\d]{24}/i would match the inner 24 chars.
+      const jwt = await authenticate();
+      const inner24hex = "a".repeat(24);
+      const paddedId = `!!!${inner24hex}@@@`;
+
+      // Act — POST
+      const resPost = await callHandler(favoriteByActivityHandler, {
+        method: "POST",
+        cookies: { jwt },
+        query: { activityId: paddedId },
+      });
+
+      // Act — DELETE
+      const resDelete = await callHandler(favoriteByActivityHandler, {
+        method: "DELETE",
+        cookies: { jwt },
+        query: { activityId: paddedId },
+      });
+
+      // Assert — both must be rejected (Zod parse fails → 400)
+      expect(resPost.status).toBe(400);
+      expect(resDelete.status).toBe(400);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // PATCH /api/me/favorites
+  // ---------------------------------------------------------------------------
+  describe("PATCH /api/me/favorites", () => {
+    it("returns 401 when no JWT cookie is provided", async () => {
+      // Arrange — no cookie
+      // Act
+      const res = await callHandler(favoritesHandler, {
+        method: "PATCH",
+        body: { ids: [] },
+      });
+      // Assert
+      expect(res.status).toBe(401);
+    });
+
+    it("returns 200 with items reordered by new position", async () => {
+      // Arrange
+      const jwt = await authenticate();
+      const owner = await createOwner();
+      const [activity1, activity2, activity3] = await seedActivities([
+        { name: "Yoga", city: "Paris", owner: owner._id },
+        { name: "Surf", city: "Biarritz", owner: owner._id },
+        { name: "Vélo", city: "Lyon", owner: owner._id },
+      ]);
+      // POST all three — activity3 ends at position 0, activity2 at 1, activity1 at 2
+      const res1 = await callHandler(favoriteByActivityHandler, {
+        method: "POST",
+        cookies: { jwt },
+        query: { activityId: activity1._id.toString() },
+      });
+      const res2 = await callHandler(favoriteByActivityHandler, {
+        method: "POST",
+        cookies: { jwt },
+        query: { activityId: activity2._id.toString() },
+      });
+      const res3 = await callHandler(favoriteByActivityHandler, {
+        method: "POST",
+        cookies: { jwt },
+        query: { activityId: activity3._id.toString() },
+      });
+      const favoriteId1 = (res1.body as FavoriteDto).id;
+      const favoriteId2 = (res2.body as FavoriteDto).id;
+      const favoriteId3 = (res3.body as FavoriteDto).id;
+      // Invert: put activity1 first, then activity2, then activity3
+      const newOrder = [favoriteId1, favoriteId2, favoriteId3];
+
+      // Act
+      const res = await callHandler(favoritesHandler, {
+        method: "PATCH",
+        cookies: { jwt },
+        body: { ids: newOrder },
+      });
+
+      // Assert
+      expect(res.status).toBe(200);
+      const body = res.body as FavoritesListResponse;
+      expect(body.items).toHaveLength(3);
+      expect(body.items[0].id).toBe(favoriteId1);
+      expect(body.items[1].id).toBe(favoriteId2);
+      expect(body.items[2].id).toBe(favoriteId3);
+      expect(body.items[0].position).toBe(0);
+      expect(body.items[1].position).toBe(1);
+      expect(body.items[2].position).toBe(2);
+    });
+
+    it("returns 400 when ids payload does not match the user favorites set", async () => {
+      // Arrange
+      const jwt = await authenticate();
+      const owner = await createOwner();
+      const [activity1] = await seedActivities([
+        { name: "Yoga", city: "Paris", owner: owner._id },
+      ]);
+      await callHandler(favoriteByActivityHandler, {
+        method: "POST",
+        cookies: { jwt },
+        query: { activityId: activity1._id.toString() },
+      });
+      // A valid ObjectId that is NOT in the user's favorites
+      const foreignId = "aaaaaaaaaaaaaaaaaaaaaaaa";
+
+      // Act
+      const res = await callHandler(favoritesHandler, {
+        method: "PATCH",
+        cookies: { jwt },
+        body: { ids: [foreignId] },
+      });
+
+      // Assert
+      expect(res.status).toBe(400);
+    });
+
+    it("returns 400 when ids contains a malformed ObjectId", async () => {
+      // Arrange
+      const jwt = await authenticate();
+
+      // Act
+      const res = await callHandler(favoritesHandler, {
+        method: "PATCH",
+        cookies: { jwt },
+        body: { ids: ["not-an-objectid"] },
+      });
+
+      // Assert
+      expect(res.status).toBe(400);
+    });
   });
 
   // ---------------------------------------------------------------------------

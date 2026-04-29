@@ -1,5 +1,6 @@
 export * from "./Activity";
 export * from "./FavoriteToggle";
+export * from "./FavoritesReorderableList";
 export * from "./SignInPromptModal";
 export * from "./ActivityListItem";
 export * from "./ActivityListPage";

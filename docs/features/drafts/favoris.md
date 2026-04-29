@@ -1,15 +1,18 @@
 # Shape — Favoris
 
-**Statut** : Draft (incrément 1 livré le 2026-04-29 — cf. `docs/sessions/2026-04-29-2349-favoris-increment-1.md`)
+**Statut** : Draft (incréments 1 et 2 livrés ; incrément 3 reste)
 **Date** : 2026-04-29
 **Auteur** : Romain Lapray
 **Slug** : favoris
 
-> **Incréments restants à livrer** :
-> - Incrément 2 — Réordonnancement (`PATCH /api/me/favorites` + DnD sur `/profil` + optimistic update + rollback)
+> **Historique de livraison** :
+> - Incrément 1 livré le 2026-04-29 — cf. `docs/sessions/2026-04-29-2349-favoris-increment-1.md`
+> - Incrément 2 livré le 2026-04-30 — cf. `docs/sessions/2026-04-30-0025-favoris-increment-2.md`
+>
+> **Incrément restant à livrer** :
 > - Incrément 3 — Hydratation des listes (`<FavoriteToggle>` sur cards Découvrir / Explorer / Mes activités)
 >
-> Pour relancer `/coding` sur l'incrément 2 ou 3, ce draft reste la source de vérité.
+> Pour relancer `/coding` sur l'incrément 3, ce draft reste la source de vérité.
 
 ## Job (JTBD)
 

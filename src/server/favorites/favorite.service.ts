@@ -9,6 +9,7 @@ import { FavoriteModel } from "./favorite.schema";
 
 export const FAVORITES_CAP = 100;
 
+// Stryker disable next-line StringLiteral: error message text is cosmetic, not a behavioral invariant
 const NOT_FOUND_MESSAGE = "Activity not found";
 
 const POPULATE_ACTIVITY_WITH_OWNER = {
@@ -24,6 +25,7 @@ async function loadHydrated(
     .populate(POPULATE_ACTIVITY_WITH_OWNER)
     .exec();
   // Should never happen in our flow: we just inserted this favorite.
+  // Stryker disable next-line ConditionalExpression,StringLiteral: defensive guard — the reachable path requires mocking the Mongoose model; the string is cosmetic
   if (!doc) throw new NotFoundError("Favorite not found");
   return doc;
 }
@@ -43,6 +45,7 @@ export const favoriteService = {
       userId: userObjectId,
     }).exec();
     if (count >= FAVORITES_CAP) {
+      // Stryker disable next-line StringLiteral: error message text is cosmetic
       throw new BadRequestError("Favorites limit reached");
     }
 
@@ -50,6 +53,7 @@ export const favoriteService = {
       userId: userObjectId,
       activityId: activityObjectId,
     }).exec();
+    // Stryker disable next-line StringLiteral: error message text is cosmetic
     if (existing) throw new ConflictError("Favorite already exists");
 
     await FavoriteModel.updateMany(
@@ -87,6 +91,42 @@ export const favoriteService = {
 
   async findByUser(userId: string): Promise<FavoriteDocument[]> {
     return FavoriteModel.find({ userId: new Types.ObjectId(userId) })
+      .sort({ position: 1 })
+      .populate(POPULATE_ACTIVITY_WITH_OWNER)
+      .exec();
+  },
+
+  async reorder(
+    userId: string,
+    ids: string[],
+  ): Promise<FavoriteDocument[]> {
+    const userObjectId = new Types.ObjectId(userId);
+
+    const existing = await FavoriteModel.find({ userId: userObjectId }).exec();
+    const existingIds = existing.map((f) => f._id.toString());
+
+    const sameSet =
+      ids.length === existingIds.length &&
+      new Set(ids).size === ids.length &&
+      ids.every((id) => existingIds.includes(id));
+    if (!sameSet) {
+      // Stryker disable next-line StringLiteral: error message text is cosmetic
+      throw new BadRequestError("Favorites set mismatch");
+    }
+
+    // Stryker disable next-line ConditionalExpression: equivalent mutant — when ids is empty and user has no favorites, bulkWrite([]) + find() also returns [] so the early return is not observable in tests
+    if (ids.length === 0) return [];
+
+    await FavoriteModel.bulkWrite(
+      ids.map((id, index) => ({
+        updateOne: {
+          filter: { _id: new Types.ObjectId(id) },
+          update: { position: index },
+        },
+      })),
+    );
+
+    return FavoriteModel.find({ userId: userObjectId })
       .sort({ position: 1 })
       .populate(POPULATE_ACTIVITY_WITH_OWNER)
       .exec();

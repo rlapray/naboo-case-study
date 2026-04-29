@@ -1,49 +1,40 @@
-import {
-  Avatar,
-  Badge,
-  Card,
-  Flex,
-  Group,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Avatar, Flex, Text } from "@mantine/core";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
-import Link from "next/link";
-import { FavoriteToggle, PageTitle } from "@/components";
-import { useAuth } from "@/hooks";
+import { useState } from "react";
+import { FavoritesReorderableList, PageTitle } from "@/components";
+import { useAuth, useSnackbar } from "@/hooks";
 import { getCurrentUser } from "@/server/auth/session";
 import { connectDb } from "@/server/db";
 import { favoriteService } from "@/server/favorites/favorite.service";
 import { toFavoriteDtos } from "@/server/serialize";
+import { api } from "@/services/api";
 import type { FavoriteDto } from "@/types/favorite";
 
 interface ProfileProps {
   readonly initialFavorites: FavoriteDto[];
 }
 
-function FavoriteListEntry({ favorite }: { readonly favorite: FavoriteDto }) {
-  const { activity } = favorite;
-  return (
-    <Card withBorder padding="sm" radius="md">
-      <Group justify="space-between" align="center">
-        <Group gap="sm">
-          <Link href={`/activities/${activity.id}`}>{activity.name}</Link>
-          <Badge color="pink" variant="light">
-            {activity.city}
-          </Badge>
-          <Badge color="yellow" variant="light">
-            {`${activity.price}€/j`}
-          </Badge>
-        </Group>
-        <FavoriteToggle activityId={activity.id} />
-      </Group>
-    </Card>
-  );
-}
 
 export const Profile = ({ initialFavorites }: ProfileProps) => {
   const { user } = useAuth();
+  const snackbar = useSnackbar();
+  const [favorites, setFavorites] = useState<FavoriteDto[]>(initialFavorites);
+
+  const handleReorder = async (newIds: string[]) => {
+    const previous = favorites;
+    const optimistic = newIds
+      .map((id) => favorites.find((f) => f.id === id)!)
+      .filter(Boolean);
+    setFavorites(optimistic);
+    try {
+      const { items } = await api.reorderFavorites(newIds);
+      setFavorites(items);
+    } catch {
+      setFavorites(previous);
+      snackbar.error("Une erreur est survenue lors du réordonnancement.");
+    }
+  };
 
   return (
     <>
@@ -66,14 +57,13 @@ export const Profile = ({ initialFavorites }: ProfileProps) => {
       <Text fw={700} size="lg" mt="xl" mb="sm">
         Mes favoris
       </Text>
-      {initialFavorites.length === 0 ? (
+      {favorites.length === 0 ? (
         <Text c="dimmed">Vous n&apos;avez pas encore de favoris.</Text>
       ) : (
-        <Stack gap="sm">
-          {initialFavorites.map((fav) => (
-            <FavoriteListEntry key={fav.id} favorite={fav} />
-          ))}
-        </Stack>
+        <FavoritesReorderableList
+          favorites={favorites}
+          onReorder={(ids) => void handleReorder(ids)}
+        />
       )}
     </>
   );

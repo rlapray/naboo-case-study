@@ -136,4 +136,11 @@ export const api = {
       method: "DELETE",
     });
   },
+
+  reorderFavorites(ids: string[]): Promise<FavoritesListResponse> {
+    return request<FavoritesListResponse>("/api/me/favorites", {
+      method: "PATCH",
+      body: JSON.stringify({ ids }),
+    });
+  },
 };
