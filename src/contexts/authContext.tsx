@@ -45,7 +45,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (!cancelled) setUser(null);
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        // Always flip isLoading: setState on an unmounted component is a
+        // no-op in React 18+, but a stale `cancelled = true` from a previous
+        // StrictMode cycle can otherwise leave the Loader stuck forever.
+        setIsLoading(false);
       });
     return () => {
       cancelled = true;
