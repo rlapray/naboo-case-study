@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { NotFoundError } from "../errors";
-// Register the User model up-front so .populate("owner") never races on first use.
+// Side-effect import: registers the User model so .populate("owner") cannot race.
 import "../users/user.schema";
 import type { ActivityDocument } from "./activity.schema";
 import { ActivityModel } from "./activity.schema";
@@ -50,6 +50,10 @@ function buildDiacriticInsensitiveRegex(input: string): string {
   return out;
 }
 
+function cursorFilters(cursor: string | undefined) {
+  return cursor ? [{ _id: { $lt: new Types.ObjectId(cursor) } }] : [];
+}
+
 function buildPage(
   docs: ActivityDocument[],
   limit: number,
@@ -67,10 +71,8 @@ export const activityService = {
     opts: PaginationOptions = {},
   ): Promise<PaginatedResult<ActivityDocument>> {
     const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
-    const filter = opts.cursor
-      ? { _id: { $lt: new Types.ObjectId(opts.cursor) } }
-      : {};
-    const docs = await ActivityModel.find(filter)
+    const conds = cursorFilters(opts.cursor);
+    const docs = await ActivityModel.find(conds.length ? { $and: conds } : {})
       .sort({ _id: -1 })
       .limit(limit + 1)
       .populate("owner")
@@ -91,11 +93,8 @@ export const activityService = {
     opts: PaginationOptions = {},
   ): Promise<PaginatedResult<ActivityDocument>> {
     const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
-    const cursorCondition = opts.cursor
-      ? [{ _id: { $lt: new Types.ObjectId(opts.cursor) } }]
-      : [];
     const docs = await ActivityModel.find({
-      $and: [{ owner: userId }, ...cursorCondition],
+      $and: [{ owner: userId }, ...cursorFilters(opts.cursor)],
     })
       .sort({ _id: -1 })
       .limit(limit + 1)
@@ -127,13 +126,10 @@ export const activityService = {
     opts: PaginationOptions = {},
   ): Promise<PaginatedResult<ActivityDocument>> {
     const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
-    const cursorCondition = opts.cursor
-      ? [{ _id: { $lt: new Types.ObjectId(opts.cursor) } }]
-      : [];
     const docs = await ActivityModel.find({
       $and: [
         { city },
-        ...cursorCondition,
+        ...cursorFilters(opts.cursor),
         ...(price ? [{ price: { $lte: price } }] : []),
         ...(activity
           ? [

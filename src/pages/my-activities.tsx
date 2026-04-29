@@ -2,10 +2,9 @@ import { Button, Center, Grid, Group } from "@mantine/core";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
 import { Activity, EmptyData, PageTitle } from "@/components";
 import { withAuth } from "@/hocs";
-import { useAuth } from "@/hooks";
+import { useAuth, useCursorPagination } from "@/hooks";
 import { activityService } from "@/server/activities/activity.service";
 import { getCurrentUser } from "@/server/auth/session";
 import { connectDb } from "@/server/db";
@@ -29,22 +28,14 @@ export const getServerSideProps: GetServerSideProps<MyActivitiesProps> = async (
 
 const MyActivities = ({ activities: initial, nextCursor: initialCursor }: MyActivitiesProps) => {
   const { user } = useAuth();
-  const [activities, setActivities] = useState<ActivityDto[]>(initial);
-  const [cursor, setCursor] = useState<string | null>(initialCursor);
-  const [loading, setLoading] = useState(false);
-
-  const loadMore = async () => {
-    if (!cursor) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/activities/mine?cursor=${cursor}`);
-      const data: PaginatedActivitiesResponse = await res.json();
-      setActivities((prev) => [...prev, ...data.items]);
-      setCursor(data.nextCursor ?? null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { items: activities, cursor, loading, loadMore } = useCursorPagination({
+    initial,
+    initialCursor,
+    fetchPage: async (c) => {
+      const res = await fetch(`/api/activities/mine?cursor=${c}`);
+      return res.json() as Promise<PaginatedActivitiesResponse>;
+    },
+  });
 
   return (
     <>

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { Fragment, useEffect, useState } from "react";
 import { ActivityListItem, EmptyData, Filters, PageTitle } from "@/components";
-import { useDebounced } from "@/hooks";
+import { useCursorPagination, useDebounced } from "@/hooks";
 import { activityService } from "@/server/activities/activity.service";
 import { connectDb } from "@/server/db";
 import { toActivityDtos } from "@/server/serialize";
@@ -62,17 +62,23 @@ export default function ActivityDetails({
   );
   const debouncedSearchPrice = useDebounced(searchPrice, 300);
 
-  const [prevInitial, setPrevInitial] = useState(initialActivities);
-  const [activities, setActivities] = useState<ActivityDto[]>(initialActivities);
-  const [cursor, setCursor] = useState<string | null>(initialCursor);
-  const [loading, setLoading] = useState(false);
+  const { items: activities, cursor, loading, loadMore, reset } = useCursorPagination({
+    initial: initialActivities,
+    initialCursor,
+    fetchPage: async (c) => {
+      const params = new URLSearchParams({ city, cursor: c });
+      if (searchActivity) params.set("activity", searchActivity);
+      if (searchPrice !== undefined) params.set("price", searchPrice.toString());
+      const res = await fetch(`/api/activities/by-city?${params.toString()}`);
+      return res.json() as Promise<PaginatedActivitiesResponse>;
+    },
+  });
 
-  // Sync state when SSR provides a fresh first page after a filter navigation.
-  // Render-phase update avoids cascading effects (React re-renders synchronously).
+  // SSR re-renders deliver a fresh first page after filter navigation.
+  const [prevInitial, setPrevInitial] = useState(initialActivities);
   if (prevInitial !== initialActivities) {
     setPrevInitial(initialActivities);
-    setActivities(initialActivities);
-    setCursor(initialCursor);
+    reset(initialActivities, initialCursor);
   }
 
   useEffect(() => {
@@ -90,22 +96,6 @@ export default function ActivityDetails({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [city, debouncedSearchActivity, debouncedSearchPrice]);
-
-  const loadMore = async () => {
-    if (!cursor) return;
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ city, cursor });
-      if (searchActivity) params.set("activity", searchActivity);
-      if (searchPrice !== undefined) params.set("price", searchPrice.toString());
-      const res = await fetch(`/api/activities/by-city?${params.toString()}`);
-      const data: PaginatedActivitiesResponse = await res.json();
-      setActivities((prev) => [...prev, ...data.items]);
-      setCursor(data.nextCursor ?? null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <>

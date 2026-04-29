@@ -1,10 +1,9 @@
-import { Button, Center, Grid, Group, Loader } from "@mantine/core";
+import { Button, Center, Grid, Group } from "@mantine/core";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
 import { Activity, EmptyData, PageTitle } from "@/components";
-import { useAuth } from "@/hooks";
+import { useAuth, useCursorPagination } from "@/hooks";
 import { activityService } from "@/server/activities/activity.service";
 import { connectDb } from "@/server/db";
 import { toActivityDtos } from "@/server/serialize";
@@ -25,22 +24,14 @@ export const getServerSideProps: GetServerSideProps<DiscoverProps> = async () =>
 
 export default function Discover({ activities: initial, nextCursor: initialCursor }: DiscoverProps) {
   const { user } = useAuth();
-  const [activities, setActivities] = useState<ActivityDto[]>(initial);
-  const [cursor, setCursor] = useState<string | null>(initialCursor);
-  const [loading, setLoading] = useState(false);
-
-  const loadMore = async () => {
-    if (!cursor) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/activities?cursor=${cursor}`);
-      const data: PaginatedActivitiesResponse = await res.json();
-      setActivities((prev) => [...prev, ...data.items]);
-      setCursor(data.nextCursor ?? null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { items: activities, cursor, loading, loadMore } = useCursorPagination({
+    initial,
+    initialCursor,
+    fetchPage: async (c) => {
+      const res = await fetch(`/api/activities?cursor=${c}`);
+      return res.json() as Promise<PaginatedActivitiesResponse>;
+    },
+  });
 
   return (
     <>
@@ -69,11 +60,6 @@ export default function Discover({ activities: initial, nextCursor: initialCurso
           <Button onClick={() => { void loadMore(); }} loading={loading} variant="outline">
             Charger plus
           </Button>
-        </Center>
-      )}
-      {loading && !cursor && (
-        <Center mt="md">
-          <Loader size="sm" />
         </Center>
       )}
     </>
