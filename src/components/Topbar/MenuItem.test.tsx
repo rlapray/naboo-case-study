@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { IconUserCircle } from "@tabler/icons-react";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

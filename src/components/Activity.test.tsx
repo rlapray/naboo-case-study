@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { Grid } from "@mantine/core";
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";

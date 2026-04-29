@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 import type { UserDto } from "@/types/user";

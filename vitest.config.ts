@@ -11,11 +11,17 @@ export default defineConfig({
     },
   },
   test: {
-    environment: "jsdom",
+    // Default `node` : moins de RAM que jsdom. Les fichiers de tests qui ont
+    // besoin du DOM déclarent `// @vitest-environment jsdom` en tête.
+    environment: "node",
     dir: "./src",
     globals: true,
     include: ["**/*.{test,spec}.{ts,tsx}"],
     setupFiles: ["./src/setupTests.ts"],
+    // forks (default Vitest 4) : isole mongodb-memory-server par worker.
+    // Cap à 4 (sur 8 CPUs) : -50% RAM peak vs uncapped, évite l'instabilité
+    // observée à 8 workers (race sur ports mongod, env JWT_*).
+    maxWorkers: 4,
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
