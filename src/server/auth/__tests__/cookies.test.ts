@@ -64,12 +64,31 @@ describe("jwt cookie helpers", () => {
     expect(res.getHeader("Set-Cookie") as string).toMatch(/Secure/i);
   });
 
-  it("clearJwtCookie expires the cookie immediately with Max-Age=0", () => {
+  it("clearJwtCookie expires the cookie immediately with Max-Age=0 and HttpOnly Lax / scope, empty value", () => {
     const res = fakeRes();
     clearJwtCookie(res);
     const cookie = res.getHeader("Set-Cookie") as string;
-    expect(cookie).toContain(`${JWT_COOKIE}=`);
+    // Empty token value (kills StringLiteral on serialize value arg)
+    expect(cookie).toMatch(new RegExp(`^${JWT_COOKIE}=;`));
     expect(cookie).toMatch(/Max-Age=0/);
     expect(cookie).toMatch(/HttpOnly/i);
+    // SameSite=Lax (kills StringLiteral on sameSite)
+    expect(cookie).toMatch(/SameSite=Lax/i);
+    // Path=/ (kills StringLiteral on path)
+    expect(cookie).toMatch(/Path=\//);
+  });
+
+  it("clearJwtCookie does not mark the cookie Secure outside production", () => {
+    vi.stubEnv("NODE_ENV", "test");
+    const res = fakeRes();
+    clearJwtCookie(res);
+    expect(res.getHeader("Set-Cookie") as string).not.toMatch(/Secure/i);
+  });
+
+  it("clearJwtCookie marks the cookie Secure in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const res = fakeRes();
+    clearJwtCookie(res);
+    expect(res.getHeader("Set-Cookie") as string).toMatch(/Secure/i);
   });
 });
