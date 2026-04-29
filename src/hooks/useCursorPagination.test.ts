@@ -60,6 +60,51 @@ describe("useCursorPagination", () => {
     expect(fetchPage).not.toHaveBeenCalled();
   });
 
+  it("starts with loading=false and toggles true → false across an in-flight fetch", async () => {
+    let resolve!: (v: PaginatedActivitiesResponse) => void;
+    const fetchPage = vi.fn(
+      () => new Promise<PaginatedActivitiesResponse>((r) => (resolve = r)),
+    );
+    const { result } = renderHook(() =>
+      useCursorPagination({ initial: [], initialCursor: "c", fetchPage }),
+    );
+
+    expect(result.current.loading).toBe(false);
+
+    let pending!: Promise<void>;
+    act(() => {
+      pending = result.current.loadMore();
+    });
+    expect(result.current.loading).toBe(true);
+
+    await act(async () => {
+      resolve({ items: [dto("b")], nextCursor: "next" });
+      await pending;
+    });
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("releases the in-flight guard after success so the next loadMore is accepted", async () => {
+    const fetchPage = vi
+      .fn<() => Promise<PaginatedActivitiesResponse>>()
+      .mockResolvedValueOnce({ items: [dto("b")], nextCursor: "c2" })
+      .mockResolvedValueOnce({ items: [dto("c")], nextCursor: undefined });
+    const { result } = renderHook(() =>
+      useCursorPagination({ initial: [dto("a")], initialCursor: "c1", fetchPage }),
+    );
+
+    await act(async () => { await result.current.loadMore(); });
+    expect(result.current.cursor).toBe("c2");
+    expect(result.current.loading).toBe(false);
+
+    await act(async () => { await result.current.loadMore(); });
+    expect(fetchPage).toHaveBeenCalledTimes(2);
+    expect(fetchPage).toHaveBeenNthCalledWith(1, "c1");
+    expect(fetchPage).toHaveBeenNthCalledWith(2, "c2");
+    expect(result.current.items.map((i) => i.id)).toEqual(["a", "b", "c"]);
+    expect(result.current.cursor).toBeNull();
+  });
+
   it("guards re-entrant calls while a fetch is in flight", async () => {
     const fetchPage = vi.fn(
       async (): Promise<PaginatedActivitiesResponse> => ({
