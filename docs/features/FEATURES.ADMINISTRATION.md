@@ -1,6 +1,6 @@
 # Administration
 
-> Snapshot du 2026-04-28 — régénérer si > 3 mois
+> Snapshot du 2026-04-29 — régénérer si > 3 mois
 
 > Domaine **dormant** : le Rôle de l'Utilisateur est modélisé en base mais aucune fonctionnalité produit ne s'appuie sur cette frontière à date.
 
@@ -8,7 +8,7 @@
 
 Le glossaire ubiquitaire définit deux Rôles possibles pour un Utilisateur :
 
-- **Utilisateur** (rôle par défaut) : accès standard à la plateforme.
+- **Utilisateur standard** (rôle par défaut) : accès standard à la plateforme.
 - **Administrateur** : accès étendu, prévu pour des opérations privilégiées.
 
 ## Fonctionnalités
