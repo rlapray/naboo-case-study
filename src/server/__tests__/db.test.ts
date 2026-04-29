@@ -2,6 +2,7 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import {
+  afterAll,
   afterEach,
   beforeAll,
   beforeEach,
@@ -15,6 +16,10 @@ let mongod: MongoMemoryServer;
 
 beforeAll(async () => {
   mongod = await MongoMemoryServer.create();
+});
+
+afterAll(async () => {
+  await mongod.stop();
 });
 
 afterEach(async () => {
