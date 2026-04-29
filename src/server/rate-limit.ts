@@ -18,6 +18,8 @@ export function getClientIp(req: NextApiRequest): string {
   const fwd = req.headers["x-forwarded-for"];
   const header = Array.isArray(fwd) ? fwd[0] : fwd;
   if (header) return header.split(",")[0]!.trim();
+  // Stryker disable next-line StringLiteral: "unknown" is an opaque fallback label;
+  // any non-IP literal yields the same bucket key partitioning, so the mutation is equivalent.
   return req.socket?.remoteAddress ?? "unknown";
 }
 
