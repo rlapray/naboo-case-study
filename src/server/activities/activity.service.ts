@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { NotFoundError } from "../errors";
 // Side-effect import: registers the User model so .populate("owner") cannot race.
 import "../users/user.schema";
-import type { ActivityDocument } from "./activity.schema";
+import type { ActivityDocument, IActivity } from "./activity.schema";
 import { ActivityModel } from "./activity.schema";
 
 export interface CreateActivityInput {
@@ -66,18 +66,26 @@ function buildPage(
   };
 }
 
+async function paginateActivities(
+  filters: Partial<IActivity>,
+  opts: PaginationOptions,
+): Promise<PaginatedResult<ActivityDocument>> {
+  const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
+  const conds = cursorFilters(opts.cursor);
+  const query = conds.length ? { $and: [filters, ...conds] } : filters;
+  const docs = await ActivityModel.find(query)
+    .sort({ _id: -1 })
+    .limit(limit + 1)
+    .populate("owner")
+    .exec();
+  return buildPage(docs, limit);
+}
+
 export const activityService = {
   async findAll(
     opts: PaginationOptions = {},
   ): Promise<PaginatedResult<ActivityDocument>> {
-    const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
-    const conds = cursorFilters(opts.cursor);
-    const docs = await ActivityModel.find(conds.length ? { $and: conds } : {})
-      .sort({ _id: -1 })
-      .limit(limit + 1)
-      .populate("owner")
-      .exec();
-    return buildPage(docs, limit);
+    return paginateActivities({}, opts);
   },
 
   async findLatest(): Promise<ActivityDocument[]> {
@@ -92,15 +100,7 @@ export const activityService = {
     userId: string,
     opts: PaginationOptions = {},
   ): Promise<PaginatedResult<ActivityDocument>> {
-    const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
-    const docs = await ActivityModel.find({
-      $and: [{ owner: userId }, ...cursorFilters(opts.cursor)],
-    })
-      .sort({ _id: -1 })
-      .limit(limit + 1)
-      .populate("owner")
-      .exec();
-    return buildPage(docs, limit);
+    return paginateActivities({ owner: new Types.ObjectId(userId) }, opts);
   },
 
   async findOne(id: string): Promise<ActivityDocument> {
@@ -125,24 +125,24 @@ export const activityService = {
     price?: number,
     opts: PaginationOptions = {},
   ): Promise<PaginatedResult<ActivityDocument>> {
+    const conds = cursorFilters(opts.cursor);
     const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
-    const docs = await ActivityModel.find({
-      $and: [
-        { city },
-        ...cursorFilters(opts.cursor),
-        ...(price ? [{ price: { $lte: price } }] : []),
-        ...(activity
-          ? [
-              {
-                name: {
-                  $regex: buildDiacriticInsensitiveRegex(activity),
-                  $options: "i",
-                },
+    const baseFilters = [
+      { city },
+      ...(price ? [{ price: { $lte: price } }] : []),
+      ...(activity
+        ? [
+            {
+              name: {
+                $regex: buildDiacriticInsensitiveRegex(activity),
+                $options: "i",
               },
-            ]
-          : []),
-      ],
-    })
+            },
+          ]
+        : []),
+    ];
+    const query = { $and: [...baseFilters, ...conds] };
+    const docs = await ActivityModel.find(query)
       .sort({ _id: -1 })
       .limit(limit + 1)
       .populate("owner")
