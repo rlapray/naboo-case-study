@@ -1,20 +1,29 @@
 import { Box, Loader } from "@mantine/core";
 import { useRouter } from "next/router";
-import type { ComponentType} from "react";
+import type { ComponentType } from "react";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks";
 
-export function withAuth<P extends object>(WrappedComponent: ComponentType<P>) {
+type AuthMode = "authed" | "guest";
+
+export function withAuth<P extends object>(
+  WrappedComponent: ComponentType<P>,
+  mode: AuthMode = "authed",
+) {
   // eslint-disable-next-line react/display-name
   return (props: P) => {
     const { user, isLoading } = useAuth();
     const router = useRouter();
 
+    const redirectTo = mode === "authed" ? "/signin" : "/";
+    const shouldRedirect = mode === "authed" ? !user : !!user;
+    const shouldRender = mode === "authed" ? !!user : !user;
+
     useEffect(() => {
-      if (!isLoading && !user) {
-        void router.push("/signin");
+      if (!isLoading && shouldRedirect) {
+        void router.push(redirectTo);
       }
-    }, [isLoading, router, user]);
+    }, [isLoading, router, shouldRedirect, redirectTo]);
 
     if (isLoading)
       return (
@@ -23,6 +32,6 @@ export function withAuth<P extends object>(WrappedComponent: ComponentType<P>) {
         </Box>
       );
 
-    return !isLoading && user && <WrappedComponent {...props} />;
+    return shouldRender ? <WrappedComponent {...props} /> : null;
   };
 }

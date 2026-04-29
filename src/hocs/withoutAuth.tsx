@@ -1,29 +1,5 @@
-import { Box, Loader } from "@mantine/core";
-import { useRouter } from "next/router";
-import type { ComponentType} from "react";
-import { useEffect } from "react";
-import { useAuth } from "@/hooks";
+import type { ComponentType } from "react";
+import { withAuth } from "./withAuth";
 
-export function withoutAuth<P extends object>(WrappedComponent: ComponentType<P>) {
-  // eslint-disable-next-line react/display-name
-  return (props: P) => {
-    const { user, isLoading } = useAuth();
-    const router = useRouter();
-
-    useEffect(() => {
-      if (!isLoading && user) {
-        void router.push("/");
-      }
-    }, [isLoading, router, user]);
-
-    if (isLoading)
-      return (
-        <Box style={{ textAlign: "center" }}>
-          <Loader style={{ marginTop: "10rem" }} />
-        </Box>
-      );
-
-    if (!user) return <WrappedComponent {...props} />;
-    return null;
-  };
-}
+export const withoutAuth = <P extends object,>(W: ComponentType<P>) =>
+  withAuth(W, "guest");
