@@ -36,6 +36,8 @@ Code serveur sous `src/server/` (mongoose schemas, services, auth, seed) ; route
 
 **Règle de décision** : *« Si je peux exprimer le comportement sans citer un parcours utilisateur, c'est unit ou RTL. Si j'ai besoin de plusieurs pages et d'un vrai backend, c'est e2e. »*
 
+**Mutation testing** (Stryker) optionnel sur `src/server/**`, `src/hooks/**`, `src/utils/**` — voir skill `mutation-testing` pour configurer Stryker, lire le rapport et tuer les mutants survivants. Complète la pyramide, ne la remplace pas.
+
 **Helper RTL projet** : `src/test-utils/renderWithProviders.tsx` enveloppe `MantineProvider` + `AuthContext` + `SnackbarContext`, valeurs overridables via `{ auth: { user, handleSignin... }, snackbar: { error, success } }`. À utiliser pour tout test composant.
 
 **Setup global** (`src/setupTests.ts`) : `@testing-library/jest-dom` matchers + polyfills `window.matchMedia` et `ResizeObserver` pour Mantine.
