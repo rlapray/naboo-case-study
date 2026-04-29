@@ -47,7 +47,17 @@ export default function ActivityForm() {
     if (debouncedSearch) {
       searchCity(debouncedSearch)
         .then((data) => {
-          setDisplayedCities(data.map((d) => ({ value: d.nom, label: d.nom })));
+          const seen = new Set<string>();
+          const options: SelectData[] = [];
+          for (const d of data) {
+            if (seen.has(d.nom)) continue;
+            seen.add(d.nom);
+            const label = d.departement?.nom
+              ? `${d.nom} (${d.departement.nom})`
+              : d.nom;
+            options.push({ value: d.nom, label });
+          }
+          setDisplayedCities(options);
         })
         .catch((err: unknown) => {
           const message =

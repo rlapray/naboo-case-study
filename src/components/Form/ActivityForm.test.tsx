@@ -74,6 +74,31 @@ describe("ActivityForm", () => {
     expect(option).toBeInTheDocument();
   });
 
+  it("dédoublonne les communes homonymes par nom et désambiguïse via le département", async () => {
+    const user = userEvent.setup();
+    searchCity.mockResolvedValue([
+      { nom: "Marolles", code: "91376", departement: { code: "91", nom: "Essonne" } },
+      { nom: "Marolles", code: "94047", departement: { code: "94", nom: "Val-de-Marne" } },
+      { nom: "Marolles", code: "41136", departement: { code: "41", nom: "Loir-et-Cher" } },
+    ]);
+
+    renderWithProviders(<ActivityForm />);
+
+    const cityInput = screen.getByRole("combobox", { name: /localisation/i });
+    await user.click(cityInput);
+    await user.type(cityInput, "Marolles");
+
+    const firstOption = await screen.findByRole(
+      "option",
+      { name: /marolles \(essonne\)/i, hidden: true },
+    );
+    expect(firstOption).toBeInTheDocument();
+    // Une seule option « Marolles » subsiste : pas de duplicate côté Mantine.
+    expect(
+      screen.getAllByRole("option", { name: /marolles/i, hidden: true }),
+    ).toHaveLength(1);
+  });
+
   it("soumet le formulaire valide, appelle l'API avec le payload et revient en arrière", async () => {
     const user = userEvent.setup();
     searchCity.mockResolvedValue([{ nom: "Paris", code: "75056" }]);
