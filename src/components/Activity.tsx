@@ -2,6 +2,7 @@ import { Badge, Button, Card, Grid, Group, Image, Text } from "@mantine/core";
 import Link from "next/link";
 import type { ActivityDto } from "@/types/activity";
 import classes from "@/utils/global.module.css";
+import { FavoriteToggle } from "./FavoriteToggle";
 
 interface ActivityProps {
   readonly activity: ActivityDto;
@@ -19,10 +20,11 @@ export function Activity({ activity }: ActivityProps) {
           />
         </Card.Section>
 
-        <Group justify="space-between" mt="md" mb="xs">
+        <Group justify="space-between" mt="md" mb="xs" wrap="nowrap">
           <Text fw={500} className={classes.ellipsis}>
             {activity.name}
           </Text>
+          <FavoriteToggle activityId={activity.id} />
         </Group>
 
         <Group mt="md" mb="xs">

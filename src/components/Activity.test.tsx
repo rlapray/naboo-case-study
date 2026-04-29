@@ -41,4 +41,25 @@ describe("le composant Activity", () => {
     const link = screen.getByRole("link", { name: /voir plus/i });
     expect(link).toHaveAttribute("href", "/activities/act-42");
   });
+
+  it("rend un FavoriteToggle en mode 'retirer' quand l'activité est favorite", () => {
+    renderWithProviders(
+      <Grid>
+        <Activity activity={activity} />
+      </Grid>,
+      { auth: { favoriteIds: new Set(["act-42"]) } },
+    );
+
+    expect(
+      screen.getByRole("button", { name: /retirer des favoris/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("rend un FavoriteToggle en mode 'ajouter' quand l'activité n'est pas favorite", () => {
+    renderInGrid(activity);
+
+    expect(
+      screen.getByRole("button", { name: /ajouter aux favoris/i }),
+    ).toBeInTheDocument();
+  });
 });

@@ -1,6 +1,6 @@
 # Shape — Favoris
 
-**Statut** : Draft (incréments 1 et 2 livrés ; incrément 3 reste)
+**Statut** : Livré (3 incréments)
 **Date** : 2026-04-29
 **Auteur** : Romain Lapray
 **Slug** : favoris
@@ -8,11 +8,9 @@
 > **Historique de livraison** :
 > - Incrément 1 livré le 2026-04-29 — cf. `docs/sessions/2026-04-29-2349-favoris-increment-1.md`
 > - Incrément 2 livré le 2026-04-30 — cf. `docs/sessions/2026-04-30-0025-favoris-increment-2.md`
+> - Incrément 3 livré le 2026-04-30 — cf. `docs/sessions/2026-04-30-0104-favoris-increment-3.md`
 >
-> **Incrément restant à livrer** :
-> - Incrément 3 — Hydratation des listes (`<FavoriteToggle>` sur cards Découvrir / Explorer / Mes activités)
->
-> Pour relancer `/coding` sur l'incrément 3, ce draft reste la source de vérité.
+> Feature complète : marquer / retirer / lister / réordonner / hydrater partout. Aucun incrément restant.
 
 ## Job (JTBD)
 

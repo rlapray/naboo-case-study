@@ -113,6 +113,53 @@ test.describe("Favoris", () => {
     await expect(page).toHaveURL(/\/signin/);
   });
 
+  test("Utilisateur connecté marque une Activité depuis la card /discover et la voit sur /profil", async ({
+    page,
+  }) => {
+    const email = uniqueEmail("favs-card");
+    const password = "password1";
+
+    await page.goto("/signup");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Mot de passe").fill(password);
+    await page.getByLabel("First name").fill("Card");
+    await page.getByLabel("Last name").fill("Tester");
+    await page.getByRole("button", { name: "Valider" }).click();
+    await page.waitForURL((url) => !url.pathname.endsWith("/signup"));
+
+    await signInAs(page, { email, password });
+
+    // Toggle directement depuis la card /discover (sans passer par la fiche).
+    await page.goto("/discover");
+    const yogaCard = page
+      .locator("div")
+      .filter({ hasText: "Yoga à Paris" })
+      .filter({ has: page.getByRole("link", { name: "Voir plus" }) })
+      .last();
+
+    const addResponse = page.waitForResponse(
+      (resp) =>
+        /\/api\/me\/favorites/.test(resp.url()) &&
+        resp.request().method() === "POST" &&
+        resp.ok(),
+    );
+    await yogaCard
+      .getByRole("button", { name: /ajouter aux favoris/i })
+      .click();
+    await addResponse;
+
+    // Hydratation immédiate : le bouton de la card bascule en "retirer".
+    await expect(
+      yogaCard.getByRole("button", { name: /retirer des favoris/i }),
+    ).toBeVisible();
+
+    // Confirmation côté /profil — la persistance DB est vérifiée par le SSR.
+    await page.goto("/profil");
+    await expect(
+      page.getByRole("link", { name: "Yoga à Paris" }),
+    ).toBeVisible();
+  });
+
   test("Utilisateur connecté réordonne ses favoris au clavier et la persistance survit au reload", async ({
     page,
   }) => {
