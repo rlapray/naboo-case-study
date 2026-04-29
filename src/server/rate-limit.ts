@@ -24,6 +24,7 @@ export function getClientIp(req: NextApiRequest): string {
 }
 
 export function rateLimit(req: NextApiRequest, opts: RateLimitOptions): void {
+  if (process.env.RATE_LIMIT_DISABLED === "true") return;
   const ip = getClientIp(req);
   const key = `${opts.bucket}:${ip}`;
   const now = Date.now();

@@ -32,6 +32,9 @@ export default defineConfig({
           ? process.env.JWT_SECRET
           : "e2e-jwt-secret-padding-xxxxxxxxxxxxxxxx",
       JWT_EXPIRATION_TIME: process.env.JWT_EXPIRATION_TIME ?? "3600",
+      // Tous les workers e2e partagent la même IP (localhost) et saturent vite
+      // le bucket `auth:login` (10/min). Désactivé pour l'e2e uniquement.
+      RATE_LIMIT_DISABLED: "true",
     },
   },
 });

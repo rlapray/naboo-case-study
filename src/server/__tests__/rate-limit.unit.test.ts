@@ -215,6 +215,35 @@ describe("rateLimit — TooManyRequestsError.retryAfterSeconds", () => {
   });
 });
 
+describe("rateLimit — RATE_LIMIT_DISABLED bypass", () => {
+  const original = process.env.RATE_LIMIT_DISABLED;
+  beforeEach(() => {
+    __resetRateLimitForTests();
+  });
+  afterEach(() => {
+    if (original === undefined) delete process.env.RATE_LIMIT_DISABLED;
+    else process.env.RATE_LIMIT_DISABLED = original;
+    __resetRateLimitForTests();
+  });
+
+  it("bypasses the limit entirely when RATE_LIMIT_DISABLED is 'true'", () => {
+    process.env.RATE_LIMIT_DISABLED = "true";
+    const o = opts({ max: 1 });
+    const r = makeReq({ headers: { "x-forwarded-for": IP_A } });
+    for (let i = 0; i < 50; i++) {
+      expect(() => rateLimit(r, o)).not.toThrow();
+    }
+  });
+
+  it("does not bypass for any value other than the literal 'true'", () => {
+    process.env.RATE_LIMIT_DISABLED = "1";
+    const o = opts({ max: 1 });
+    const r = makeReq({ headers: { "x-forwarded-for": IP_A } });
+    rateLimit(r, o);
+    expect(() => rateLimit(r, o)).toThrow(TooManyRequestsError);
+  });
+});
+
 describe("__resetRateLimitForTests", () => {
   it("clears in-memory state so subsequent calls start a fresh window", () => {
     const r = makeReq({ headers: { "x-forwarded-for": IP_C } });
