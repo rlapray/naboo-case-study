@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signInAs } from "./fixtures/auth";
+import { SEED_ADMIN, signInAs } from "./fixtures/auth";
 
 test.describe("Découvrir toutes les Activités", () => {
   test("liste les Activités du Catalogue (visiteur)", async ({ page }) => {
@@ -28,5 +28,24 @@ test.describe("Découvrir toutes les Activités", () => {
     const publishLink = page.getByRole("link", { name: "Ajouter une activité" });
     await expect(publishLink).toBeVisible();
     await expect(publishLink).toHaveAttribute("href", "/activities/create");
+  });
+});
+
+test.describe("mode debug administrateur sur Découvrir", () => {
+  test("un Administrateur voit la date de création sur les cartes", async ({ page }) => {
+    await signInAs(page, SEED_ADMIN);
+    await page.goto("/discover");
+
+    await expect(
+      page.getByText(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/).first(),
+    ).toBeVisible();
+  });
+
+  test("un Utilisateur standard ne voit pas la date de création", async ({ page }) => {
+    await signInAs(page);
+    await page.goto("/discover");
+
+    await expect(page.getByText("Yoga à Paris").first()).toBeVisible();
+    await expect(page.getByText(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/)).toHaveCount(0);
   });
 });

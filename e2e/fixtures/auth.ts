@@ -7,6 +7,13 @@ export const SEED_USER = {
   lastName: "Doe",
 };
 
+export const SEED_ADMIN = {
+  email: "admin@test.fr",
+  password: "admin",
+  firstName: "Admin",
+  lastName: "Boss",
+};
+
 export async function signInAs(
   page: Page,
   credentials: { email: string; password: string } = SEED_USER,

@@ -3,6 +3,7 @@ import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { FavoriteToggle, PageTitle } from "@/components";
+import { DebugCreatedAt } from "@/components/DebugCreatedAt";
 import { activityService } from "@/server/activities/activity.service";
 import { connectDb } from "@/server/db";
 import { NotFoundError } from "@/server/errors";
@@ -63,6 +64,7 @@ export default function ActivityDetails({ activity }: ActivityDetailsProps) {
             <Text size="sm" c="dimmed">
               Ajouté par {activity.owner.firstName} {activity.owner.lastName}
             </Text>
+            <DebugCreatedAt activity={activity} />
           </Flex>
         </Grid.Col>
       </Grid>

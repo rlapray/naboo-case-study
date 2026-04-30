@@ -2,6 +2,7 @@ import { Box, Button, Flex, Image, Text } from "@mantine/core";
 import Link from "next/link";
 import type { ActivityDto } from "@/types/activity";
 import classes from "@/utils/global.module.css";
+import { DebugCreatedAt } from "./DebugCreatedAt";
 
 interface ActivityListItemProps {
   readonly activity: ActivityDto;
@@ -23,6 +24,7 @@ export function ActivityListItem({ activity }: ActivityListItemProps) {
           <Text className={classes.ellipsis}>{activity.name}</Text>
           <Text className={classes.ellipsis}>{activity.description}</Text>
           <Text fw="bold" className={classes.ellipsis}>{`${activity.price}€/j`}</Text>
+          <DebugCreatedAt activity={activity} />
         </Box>
       </Flex>
       <Link href={`/activities/${activity.id}`} className={classes.link}>

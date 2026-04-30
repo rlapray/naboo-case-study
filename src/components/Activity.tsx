@@ -2,6 +2,7 @@ import { Badge, Button, Card, Grid, Group, Image, Text } from "@mantine/core";
 import Link from "next/link";
 import type { ActivityDto } from "@/types/activity";
 import classes from "@/utils/global.module.css";
+import { DebugCreatedAt } from "./DebugCreatedAt";
 import { FavoriteToggle } from "./FavoriteToggle";
 
 interface ActivityProps {
@@ -39,6 +40,8 @@ export function Activity({ activity }: ActivityProps) {
         <Text size="sm" c="dimmed" className={classes.ellipsis}>
           {activity.description}
         </Text>
+
+        <DebugCreatedAt activity={activity} />
 
         <Link href={`/activities/${activity.id}`} className={classes.link}>
           <Button variant="light" color="blue" fullWidth mt="md" radius="md">
