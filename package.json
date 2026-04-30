@@ -24,7 +24,7 @@
     "mutation:incremental": "pnpm pretest:clean && stryker run --incremental",
     "mutation:ci": "pnpm pretest:clean && stryker run --incremental",
     "seed": "tsx scripts/seed.ts",
-    "start:db": "docker-compose up -d",
+    "start:db": "docker start naboo-mongo 2>/dev/null || docker-compose up -d",
     "stop:db": "docker-compose stop",
     "stop:db:rm": "docker-compose down",
     "prepare": "lefthook install"
