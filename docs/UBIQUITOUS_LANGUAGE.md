@@ -9,6 +9,7 @@
 | **Catalogue** | Activités, villes, recherche, navigation, mise en avant des dernières activités, pagination des listes |
 | **Identité** | Inscription, connexion, déconnexion, profil de l'Utilisateur connecté |
 | **Administration** | Rôle technique attribué à un Utilisateur (utilisateur standard vs administrateur) |
+| **Favoris** | Marquage personnel d'Activités par un Utilisateur connecté, ordonnés librement, consultés depuis le Profil |
 
 ---
 
@@ -39,6 +40,16 @@
 | **Profil** | Vue des informations personnelles (prénom, nom, email, rôle) de l'Utilisateur connecté. | me, account, getMe |
 | **Session** | État authentifié d'un Utilisateur, matérialisé par un jeton délivré à la Connexion et invalidé à la Déconnexion. | token, JWT, access_token |
 
+## Favoris
+
+| Terme | Définition | Alias à éviter |
+|-------|-----------|----------------|
+| **Favori** | Marquage par un Utilisateur connecté d'une Activité qu'il veut retrouver depuis son Profil. Relation personnelle, réversible, n'affecte ni la visibilité ni le classement de l'Activité pour les autres. | favorite, bookmark, like, wishlist, saved, étoile |
+| **Mes favoris** | Liste finie ordonnée des Favoris de l'Utilisateur connecté, présentée sur le Profil. **N'est pas une Page d'activités** : pas de Curseur, pas de Charger plus, taille bornée par le Plafond de favoris. L'ordre est défini par l'Utilisateur. | my favorites, liste de souhaits |
+| **Réordonnancement** | Action de l'Utilisateur qui modifie l'ordre de Mes favoris par glisser-déposer ; persisté côté serveur via réécriture complète de la séquence. | reorder, drag, sort, tri |
+| **Plafond de favoris** | Limite dure de 100 Favoris par Utilisateur. Le 101e marquage est refusé avec un message d'erreur explicite. | quota, max, capacité |
+| **Modale de vente** | Composant affiché à un Visiteur non connecté qui tente de marquer un Favori : explique la feature et propose Connexion ou Inscription. | login wall, paywall, modale d'auth |
+
 ## Administration
 
 | Terme | Définition | Alias à éviter |
@@ -56,6 +67,9 @@
 - Le **Rôle** (Administration) est porté par l'**Utilisateur** (Identité) mais ne change rien au cycle de vie d'une **Activité** — toutes les Activités sont visibles immédiatement, sans modération.
 - La **Ville** d'une **Activité** est une chaîne libre côté **Catalogue** ; le contexte **Explorer** s'appuie en plus sur un service externe (geo.api.gouv.fr) pour suggérer des Villes existantes lors de la création.
 - **Découvrir**, **Explorer** et **Mes activités** renvoient tous une **Page d'activités** ; **Dernières activités** est la seule liste du Catalogue qui n'expose ni **Curseur** ni **Charger plus** (taille fixe à trois).
+- Un **Favori** est une relation entre une **Activité** (Catalogue) et un **Utilisateur** (Identité) ; le bounded context **Favoris** porte la relation, ni Catalogue ni Identité ne la connaissent côté serveur.
+- **Mes favoris** est exposée sur le **Profil** mais n'en fait pas partie : c'est une projection séparée, hydratée en SSR par `getServerSideProps` de `/profil`.
+- Côté front, l'**AuthContext** porte un set `favoriteIds` (uniquement les identifiants, pas l'ordre) qui hydrate l'icône cœur sur **Découvrir**, **Explorer** et **Mes activités** sans requête supplémentaire — couplage front-only assumé (cf. décision Q5 du draft Favoris).
 
 ## Dialogue d'exemple
 
@@ -67,6 +81,8 @@
 > **Expert métier :** « Non, **Dernières activités** est une vitrine fixe de trois Activités, sans pagination. »
 > **Dev :** « Si un **Administrateur** se connecte, voit-il un écran différent ? »
 > **Expert métier :** « Pas aujourd'hui — le **Rôle** existe en base mais aucune fonctionnalité d'Administration n'est exposée dans l'UI. »
+> **Dev :** « Si je marque un **Favori** sur la page **Découvrir**, est-ce que l'icône reste visible quand je vais sur **Explorer** ? »
+> **Expert métier :** « Oui — l'icône cœur reflète **Mes favoris** partout où une Activité apparaît, sans rechargement. »
 
 ## Ambiguïtés signalées
 
@@ -74,6 +90,8 @@
 - **Ville** est à la fois un attribut d'**Activité** (chaîne libre persistée) et une suggestion issue d'un service externe (geo.api.gouv.fr) dans **Explorer** et le formulaire de création — ce ne sont pas les mêmes objets, ils ne sont pas synchronisés.
 - **Token** apparaît côté serveur (`token` persisté sur l'**Utilisateur**) et côté client (cookie de session) — la notion canonique unique est la **Session**.
 - **Curseur** et `cursor` désignent à la fois le repère renvoyé par le serveur (`nextCursor`) et celui que le client renvoie en paramètre de requête (`cursor`). Le concept est unique : un repère opaque sur la prochaine Page d'activités. Aucun « numéro de page » ni offset n'existe dans le domaine.
+- **`favoriteIds` (front) vs Mes favoris (back)** : `AuthContext.favoriteIds` est un `Set<string>` non ordonné — il sert seulement à hydrater l'icône cœur. L'ordre canonique de **Mes favoris** vit côté serveur (champ `position`) et n'est lu qu'en SSR sur `/profil`. Ne pas confondre les deux représentations.
+- **« Favori » substantif vs verbe** : on dit « marquer comme **Favori** » (substantif), pas « favoriser » (verbe trop large) ni « liker ».
 
 ## Écarts code vs. langage canonique
 
@@ -98,17 +116,24 @@
 | **Utilisateur standard** | `role: "user"` | `user.schema.ts`, `UserRole` | Acceptable |
 | **Administrateur** | `role: "admin"` | `user.schema.ts`, `UserRole` | Acceptable |
 | **Ville** | `city` | `IActivity.city`, `searchCity`, `findCities` | Acceptable |
+| **Favori** | `Favorite`, `FavoriteModel`, `FavoriteDto` | `src/server/favorites/favorite.schema.ts`, `favorite.service.ts`, `src/types/favorite.ts` | Acceptable (anglais technique) |
+| **Mes favoris** | `findByUser` (service), route `GET /api/me/favorites`, section UI sur `/profil` | `src/server/favorites/favorite.service.ts`, `src/pages/api/me/favorites/index.ts`, `src/pages/profil.tsx` | Acceptable |
+| **Réordonnancement** | `reorder` (service), route `PATCH /api/me/favorites`, composant `<FavoritesReorderableList>`, helper pur `computeReorderedIds` | `src/server/favorites/favorite.service.ts`, `src/pages/api/me/favorites/index.ts`, `src/components/FavoritesReorderableList.tsx` | Acceptable |
+| **Plafond de favoris** | littéral `100` + message `"Vous avez atteint la limite de 100 favoris."` | `src/server/favorites/favorite.service.ts`, `src/contexts/authContext.tsx` | Écart mineur : valeur non nommée ; envisager une constante `FAVORITES_CAP` |
+| **Modale de vente** | `<SignInPromptModal>` | `src/components/SignInPromptModal.tsx` | Acceptable |
+| (set d'IDs front) | `favoriteIds: Set<string>`, route `GET /api/me/favorites/ids` | `src/contexts/authContext.tsx`, `src/pages/api/me/favorites/ids.ts` | Acceptable — projection front-only de Mes favoris (sans ordre) |
 
 *Cette section est purement informative. L'agent ne propose ni n'exécute aucun renommage. À l'utilisateur de décider.*
 
 <!-- meta
-last_run: 2026-04-29T12:00:00Z
-files_scanned: 107
-sha256: c52b61128d6323e7c3112eaac732aebe094d3df3d25e2e8ab185e727ed631e97
+last_run: 2026-04-30T00:00:00Z
+files_scanned: 120
+sha256: pending
 external_sources_consulted: []
 notes:
   - Mise à jour incrémentale (re-run) après les commits de2129d (cursor-based pagination), 06597b6 (extract useCursorPagination) et f2527a8 (test helpers).
   - Nouveaux termes Catalogue : Page d'activités, Curseur, Charger plus — concepts surfacés dans les DTOs publics (`{ items, nextCursor }`), le hook `useCursorPagination` et l'UI (« Charger plus »).
   - Dialogue d'exemple enrichi pour couvrir la pagination, et distinction explicite avec Dernières activités (vitrine fixe sans Curseur).
   - Aucune source externe consultée : aucun terme métier sectoriel ambigu dans ce run.
+  - 2026-04-30 : livraison de la feature Favoris (3 incréments, sessions `2026-04-29-2349-favoris-increment-1`, `2026-04-30-0025-favoris-increment-2`, `2026-04-30-0104-favoris-increment-3`). Nouveau bounded context **Favoris** ajouté avec 5 termes canoniques (Favori, Mes favoris, Réordonnancement, Plafond de favoris, Modale de vente) et 6 lignes d'écarts code/canon.
 -->
